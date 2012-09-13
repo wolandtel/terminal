@@ -1,0 +1,6 @@
+Makefile
+*.o
+moc_*
+terminal
+ui_*
+
