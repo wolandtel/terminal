@@ -6,9 +6,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+		connect(this->ui->CardPb, SIGNAL(clicked()), &(this->m_pd), SLOT(open()));
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+	delete ui;
 }

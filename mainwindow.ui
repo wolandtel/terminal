@@ -56,14 +56,14 @@
        <widget class="QPushButton" name="CardPb">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>50</height>
+          <width>400</width>
+          <height>100</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
-          <height>16777215</height>
+          <width>400</width>
+          <height>100</height>
          </size>
         </property>
         <property name="font">
@@ -72,6 +72,9 @@
           <weight>75</weight>
           <bold>true</bold>
          </font>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
         </property>
         <property name="text">
          <string>Вставлена карточка</string>
@@ -147,14 +150,14 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>50</height>
+          <width>400</width>
+          <height>100</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
-          <height>16777215</height>
+          <width>400</width>
+          <height>100</height>
          </size>
         </property>
         <property name="font">
@@ -163,6 +166,9 @@
           <weight>75</weight>
           <bold>true</bold>
          </font>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
         </property>
         <property name="layoutDirection">
          <enum>Qt::LeftToRight</enum>
