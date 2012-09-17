@@ -1,6 +1,7 @@
 #include <QApplication>
 #include "mainwindow.h"
 #include "pindialog.h"
+#include "cardreader.h"
 
 int main(int argc, char *argv[])
 {
@@ -12,6 +13,12 @@ int main(int argc, char *argv[])
 		a.setPalette(p);
     MainWindow w;
 		w.showFullScreen();
+
+		Cardreader c;
+		if (c.init())
+			w.displayReady();
+		else
+			w.displayError();
 
     return a.exec();
 }

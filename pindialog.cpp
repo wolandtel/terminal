@@ -70,6 +70,6 @@ void PinDialog::on_kp9Pb_clicked()
 
 void PinDialog::open()
 {
-	this->ui->pinLe->clear();
-	this->showFullScreen();
+	ui->pinLe->clear();
+	showFullScreen();
 }
