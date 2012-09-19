@@ -10,7 +10,6 @@ MainWindow::MainWindow(QWidget *parent) :
 		connect(ui->CardPb, SIGNAL(clicked()), &m_pd, SLOT(open()));
 #else
 		ui->CardPb->hide();
-		ui->QuitPb->hide();
 #endif
 }
 

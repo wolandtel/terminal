@@ -17,11 +17,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     pindialog.cpp \
-    cardreader.cpp
+    cardreader.cpp \
+    bytearray.cpp
 
 HEADERS  += mainwindow.h \
     pindialog.h \
-    cardreader.h
+    cardreader.h \
+    bytearray.h
 
 FORMS    += mainwindow.ui \
     pindialog.ui

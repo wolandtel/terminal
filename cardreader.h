@@ -3,10 +3,22 @@
 
 #include <QObject>
 #include "qextserialport.h"
+#include "bytearray.h"
 
-// Макросы для генерации CRC16-CCITT
-#define INIT 0x0000 /* Initial value */
-#define POLINOMIAL 0x1021 /* Polynomial X16+X12+X5+1 */
+// Ответы кардридера
+#define RESP_STX 0xF2
+#define RESP_ACK 0x06
+#define RESP_DLE 0x10
+#define RESP_EOT 0x04
+#define RESP_NAK 0x15
+
+/*
+#define RESP_ 0x
+#define RESP_ 0x
+#define RESP_ 0x
+#define RESP_ 0x
+#define RESP_ 0x
+*/
 
 class Cardreader : public QObject
 {
@@ -22,17 +34,30 @@ class Cardreader : public QObject
 	private:
 		enum
 		{
+			ST_NONE,
 			ST_INIT,
 			ST_CWAIT,
 			ST_CREAD
 		} m_state;
 
-		QextSerialPort *m_tty;
+		enum
+		{
+			SS_RESP,
+			SS_LEN,
+			SS_DATA,
+			SS_CRC
+		} m_substate;
 
-		unsigned short crc(unsigned char *,unsigned short);
-		unsigned short crc_aux(unsigned short, unsigned short);
-		QByteArray *mkCmd(const QByteArray &);
+		QextSerialPort *m_tty;
+		int m_waitbytes;
+		ByteArray m_rcvbuf;
+		ByteArray m_rheader;
+		ByteArray m_rdata;
+
+		ByteArray mkCmd(const QByteArray &);
 		void sendCmd(const QByteArray &);
+		void sendChr(const char);
+		void handleMsg();
 
 	private slots:
 		void read();
