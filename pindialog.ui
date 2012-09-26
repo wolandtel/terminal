@@ -13,6 +13,9 @@
     <height>1026</height>
    </rect>
   </property>
+  <property name="cursor">
+   <cursorShape>BlankCursor</cursorShape>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -439,11 +442,11 @@
    <item row="3" column="1" colspan="2">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QLineEdit" name="pinLe">
+      <widget class="QFrame" name="frame">
        <property name="minimumSize">
         <size>
          <width>400</width>
-         <height>0</height>
+         <height>100</height>
         </size>
        </property>
        <property name="maximumSize">
@@ -452,38 +455,60 @@
          <height>100</height>
         </size>
        </property>
-       <property name="font">
-        <font>
-         <family>DejaVu Sans Mono</family>
-         <pointsize>48</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
        </property>
-       <property name="inputMask">
-        <string/>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
        </property>
-       <property name="text">
-        <string/>
+       <property name="midLineWidth">
+        <number>1</number>
        </property>
-       <property name="maxLength">
-        <number>4</number>
-       </property>
-       <property name="frame">
-        <bool>true</bool>
-       </property>
-       <property name="echoMode">
-        <enum>QLineEdit::Password</enum>
-       </property>
-       <property name="cursorPosition">
-        <number>0</number>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
+       <widget class="QLineEdit" name="pinLe">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>400</width>
+          <height>100</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>400</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>400</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>DejaVu Sans Mono</family>
+          <pointsize>48</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="maxLength">
+         <number>4</number>
+        </property>
+        <property name="frame">
+         <bool>false</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
       </widget>
      </item>
      <item>

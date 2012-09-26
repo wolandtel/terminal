@@ -4,6 +4,12 @@ ByteArray::ByteArray() : QByteArray() {}
 
 ByteArray::ByteArray(QByteArray src) : QByteArray(src) {}
 
+ByteArray::ByteArray(const char *cstr) : QByteArray(cstr) {}
+
+ByteArray::ByteArray(int size, char chr) : QByteArray(size, chr) {}
+
+ByteArray::ByteArray(int chr) : QByteArray(1, (unsigned char)chr) {}
+
 QByteArray ByteArray::fromShortSwapped(unsigned short num)
 {
 	unsigned short swp = (num << 8 | num >> 8);

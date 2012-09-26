@@ -15,6 +15,9 @@ class PinDialog : public QWidget
 		explicit PinDialog(QWidget *parent = 0);
 		~PinDialog();
 		
+	public slots:
+		void open();
+		
 	private slots:
 		void on_kpBsPb_clicked();
 		void on_kp0Pb_clicked();
@@ -27,8 +30,6 @@ class PinDialog : public QWidget
 		void on_kp7Pb_clicked();
 		void on_kp8Pb_clicked();
 		void on_kp9Pb_clicked();
-
-		void open();
 
 	private:
 		Ui::PinDialog *ui;

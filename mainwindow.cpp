@@ -5,9 +5,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+		ui->setupUi(this);
 #ifdef DEBUG
 		connect(ui->CardPb, SIGNAL(clicked()), &m_pd, SLOT(open()));
+		setCursor(Qt::ArrowCursor);
 #else
 		ui->CardPb->hide();
 #endif
@@ -26,4 +27,9 @@ void MainWindow::displayReady()
 void MainWindow::displayError()
 {
 	ui->stateLb->setText(QString::fromUtf8("Ошибка инициализации устройства"));
+}
+
+void MainWindow::getPin()
+{
+	m_pd.open();
 }

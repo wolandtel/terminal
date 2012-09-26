@@ -18,12 +18,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     pindialog.cpp \
     cardreader.cpp \
-    bytearray.cpp
+    bytearray.cpp \
+    command.cpp
 
 HEADERS  += mainwindow.h \
     pindialog.h \
     cardreader.h \
-    bytearray.h
+    bytearray.h \
+    command.h
 
 FORMS    += mainwindow.ui \
     pindialog.ui

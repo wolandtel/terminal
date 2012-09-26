@@ -26,7 +26,7 @@
    </size>
   </property>
   <property name="cursor">
-   <cursorShape>ArrowCursor</cursorShape>
+   <cursorShape>BlankCursor</cursorShape>
   </property>
   <property name="contextMenuPolicy">
    <enum>Qt::NoContextMenu</enum>

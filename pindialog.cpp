@@ -6,6 +6,11 @@ PinDialog::PinDialog(QWidget *parent) :
 	ui(new Ui::PinDialog)
 {
 	ui->setupUi(this);
+#ifdef DEBUG
+	setCursor(Qt::ArrowCursor);
+#else
+	ui->pinLe->setCursor(Qt::BlankCursor);
+#endif
 }
 
 PinDialog::~PinDialog()

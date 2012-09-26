@@ -13,12 +13,14 @@ int main(int argc, char *argv[])
 	a.setPalette(p);
 	MainWindow w;
 	w.showFullScreen();
-
+	
 	Cardreader c;
-	if (c.init())
-		w.displayReady();
-	else
-		w.displayError();
-
+	
+	QObject::connect(&c, SIGNAL(initSucceeded()), &w, SLOT(displayReady()));
+	QObject::connect(&c, SIGNAL(initFailed()), &w, SLOT(displayError()));
+	QObject::connect(&c, SIGNAL(hasCard()), &w, SLOT(getPin()));
+	
+	c.init();
+	
 	return a.exec();
 }

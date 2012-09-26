@@ -4,63 +4,72 @@
 #include <QObject>
 #include "qextserialport.h"
 #include "bytearray.h"
+#include "command.h"
 
-// Ответы кардридера
-#define RESP_STX 0xF2
-#define RESP_ACK 0x06
-#define RESP_DLE 0x10
-#define RESP_EOT 0x04
-#define RESP_NAK 0x15
-
-/*
-#define RESP_ 0x
-#define RESP_ 0x
-#define RESP_ 0x
-#define RESP_ 0x
-#define RESP_ 0x
-*/
+// Таймауты (мс)
+#define TM_WCMD 10
+#define TM_READCHAR 250
+#define TM_OPEN 800
 
 class Cardreader : public QObject
 {
 		Q_OBJECT
 	public:
 		explicit Cardreader(QObject *parent = 0);
-		bool init();
+		void init();
 		
 	signals:
+		void initFailed();
+		void initSucceeded();
+		void hasCard();
 		
 	public slots:
 		
+	protected:
+		void timerEvent(QTimerEvent *event);
+		
 	private:
-		enum
+		struct
 		{
-			ST_NONE,
-			ST_INIT,
-			ST_CWAIT,
-			ST_CREAD
+			bool initialized;
 		} m_state;
-
+		
 		enum
 		{
-			SS_RESP,
-			SS_LEN,
-			SS_DATA,
-			SS_CRC
-		} m_substate;
-
+			R_NONE,
+			R_RESP,
+			R_LEN,
+			R_DATA,
+			R_CRC
+		} m_reading;
+		
+		enum errcode
+		{
+			ERR_NONE,
+			ERR_NAK,
+			ERR_CRC,
+			ERR_NEGATIVE
+		};
+		
 		QextSerialPort *m_tty;
-		int m_waitbytes;
-		ByteArray m_rcvbuf;
-		ByteArray m_rheader;
-		ByteArray m_rdata;
-
-		ByteArray mkCmd(const QByteArray &);
-		void sendCmd(const QByteArray &);
-		void sendChr(const char);
+		int m_waitbytes, m_rtimer;
+		ByteArray m_rcvbuf, m_rheader, m_rdata;
+		Command *m_lastCmd, *m_curCmd;
+		
+		void sendCmd(const ByteArray &, const ByteArray &, Command * = NULL);
+		void sendCmd(const ByteArray &, Command * = NULL);
 		void handleMsg();
-
+		void handleResponse();
+		void handleError(enum errcode);
+		void handleCurCmd(int);
+		void stopTimer(int *, bool = true);
+		void reset();
+		void handleCard();
+		
 	private slots:
+		void initContinue();
 		void read();
+		void writeCmd(ByteArray);
 };
 
 #endif // CARDREADER_H

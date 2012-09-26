@@ -12,6 +12,9 @@ class ByteArray : public QByteArray
 	public:
 		ByteArray();
 		ByteArray(QByteArray);
+		ByteArray(const char *);
+		ByteArray(int, char);
+		ByteArray(int);
 		static QByteArray fromShortSwapped(unsigned short);
 		unsigned short crcCcitt();
 		QByteArray crcCcittBa();
