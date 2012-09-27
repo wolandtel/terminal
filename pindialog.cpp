@@ -2,7 +2,7 @@
 #include "ui_pindialog.h"
 
 PinDialog::PinDialog(QWidget *parent) :
-	QWidget(parent),
+	QDialog(parent),
 	ui(new Ui::PinDialog)
 {
 	ui->setupUi(this);
@@ -77,4 +77,12 @@ void PinDialog::open()
 {
 	ui->pinLe->clear();
 	showFullScreen();
+}
+
+void PinDialog::on_pinLe_textChanged(const QString &arg1)
+{
+	if (arg1.size() == ui->pinLe->maxLength())
+		ui->OkPb->setEnabled(true);
+	else
+		ui->OkPb->setEnabled(false);
 }

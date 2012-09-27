@@ -1,13 +1,13 @@
 #ifndef PINDIALOG_H
 #define PINDIALOG_H
 
-#include <QWidget>
+#include <QDialog>
 
 namespace Ui {
 	class PinDialog;
 }
 
-class PinDialog : public QWidget
+class PinDialog : public QDialog
 {
 		Q_OBJECT
 		
@@ -31,6 +31,8 @@ class PinDialog : public QWidget
 		void on_kp8Pb_clicked();
 		void on_kp9Pb_clicked();
 
+		void on_pinLe_textChanged(const QString &arg1);
+		
 	private:
 		Ui::PinDialog *ui;
 };

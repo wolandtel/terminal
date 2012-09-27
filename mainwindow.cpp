@@ -7,11 +7,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 		ui->setupUi(this);
 #ifdef DEBUG
-		connect(ui->CardPb, SIGNAL(clicked()), &m_pd, SLOT(open()));
+		connect(ui->CardPb, SIGNAL(clicked()), &pd, SLOT(open()));
 		setCursor(Qt::ArrowCursor);
-#else
-		ui->CardPb->hide();
 #endif
+		ui->CardPb->hide();
 }
 
 MainWindow::~MainWindow()
@@ -31,5 +30,16 @@ void MainWindow::displayError()
 
 void MainWindow::getPin()
 {
-	m_pd.open();
+	pd.open();
+}
+
+void MainWindow::ejectCard(bool err)
+{
+	QString text = "";
+	
+	if (err)
+		text += QString::fromUtf8("Карта не может быть прочитана. ");
+	text += QString::fromUtf8("Достаньте карту");
+	
+	ui->stateLb->setText(text);
 }

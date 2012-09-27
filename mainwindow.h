@@ -15,15 +15,17 @@ class MainWindow : public QMainWindow
 	public:
 		explicit MainWindow(QWidget *parent = 0);
 		~MainWindow();
+		
+		PinDialog pd;
 
 	public slots:
 		void displayReady();
 		void displayError();
 		void getPin();
+		void ejectCard(bool);
 	
 	private:
     Ui::MainWindow *ui;
-		PinDialog m_pd;
 };
 
 #endif // MAINWINDOW_H

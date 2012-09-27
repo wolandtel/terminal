@@ -33,8 +33,11 @@ Command::Command(QObject *parent,
 	if ((cmd.size() > 1) || (data.size() == 0))
 	{
 		m_cmd += cmd;
+		m_param = -1;
 		return;
 	}
+	
+	m_param = (unsigned char)data[0];
 	
 	m_cmd += RESP_STX;
 	m_cmd += ByteArray::fromShortSwapped(data.size() + 2);
