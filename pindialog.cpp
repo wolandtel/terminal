@@ -11,11 +11,18 @@ PinDialog::PinDialog(QWidget *parent) :
 #else
 	ui->pinLe->setCursor(Qt::BlankCursor);
 #endif
+	
+	connect(ui->OkPb, SIGNAL(clicked()), SIGNAL(gotPin()));
 }
 
 PinDialog::~PinDialog()
 {
 	delete ui;
+}
+
+QString PinDialog::pin()
+{
+	return ui->pinLe->text();
 }
 
 void PinDialog::on_kpBsPb_clicked()
@@ -81,8 +88,5 @@ void PinDialog::open()
 
 void PinDialog::on_pinLe_textChanged(const QString &arg1)
 {
-	if (arg1.size() == ui->pinLe->maxLength())
-		ui->OkPb->setEnabled(true);
-	else
-		ui->OkPb->setEnabled(false);
+	ui->OkPb->setEnabled(arg1.size() == ui->pinLe->maxLength());
 }

@@ -62,9 +62,9 @@ void Command::setNext(Command *next)
 	m_next = next;
 }
 
-bool Command::atype(int a_type)
+bool Command::atype(int atype)
 {
-	return a_type & this->m_atype;
+	return atype & this->m_atype;
 }
 
 void Command::timerEvent(QTimerEvent *event)

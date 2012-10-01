@@ -44,10 +44,10 @@ class Command : public QObject
 		Command(QObject *, const ByteArray &, const ByteArray &);
 		unsigned char code() { return m_code; };
 		unsigned char param() { return m_param; };
-		void send(int = 0);
+		void send(int timeout = 0);
 		void setNext(Command *next);
 		Command *next() { return m_next; };
-		bool atype(int);
+		bool atype(int atype);
 		int waitBytes () { return m_waitbytes; };
 		
 	signals:

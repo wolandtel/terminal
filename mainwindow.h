@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "pindialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -16,13 +15,15 @@ class MainWindow : public QMainWindow
 		explicit MainWindow(QWidget *parent = 0);
 		~MainWindow();
 		
-		PinDialog pd;
-
+	signals:
+#ifdef DEBUG
+		void hasCard();
+#endif
+		
 	public slots:
 		void displayReady();
 		void displayError();
-		void getPin();
-		void ejectCard(bool);
+		void ejectCard(bool err);
 	
 	private:
     Ui::MainWindow *ui;

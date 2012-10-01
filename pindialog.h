@@ -15,6 +15,11 @@ class PinDialog : public QDialog
 		explicit PinDialog(QWidget *parent = 0);
 		~PinDialog();
 		
+		QString pin();
+		
+	signals:
+		void gotPin();
+		
 	public slots:
 		void open();
 		

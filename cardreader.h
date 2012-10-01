@@ -19,8 +19,9 @@ class Cardreader : public QObject
 {
 		Q_OBJECT
 	public:
-		explicit Cardreader(QObject *parent = 0);
+		explicit Cardreader(const QString &tty, QObject *parent = 0);
 		void init();
+		QString cardnum() { return m_cardnum; };
 		
 	signals:
 		void initFailed();
@@ -61,22 +62,22 @@ class Cardreader : public QObject
 		Command *m_lastCmd, *m_curCmd;
 		QString m_cardnum;
 		
-		void sendCmd(const ByteArray &, const ByteArray &, Command * = NULL);
-		void sendCmd(const ByteArray &, Command * = NULL);
+		void sendCmd(const ByteArray &cmd, const ByteArray &data, Command *replied = NULL);
+		void sendCmd(const ByteArray &data, Command *replied = NULL);
 		void handleMsg();
-		void handleResponse(bool = true);
-		void handleError(enum errcode);
-		void handleCurCmd(int);
-		void stopTimer(int *, bool = true);
+		void handleResponse(bool positive = true);
+		void handleError(enum errcode errcode);
+		void handleCurCmd(int atype);
+		void stopTimer(int *timer, bool condition = true);
 		void reset();
-		void handleCard(unsigned char, int);
+		void handleCard(unsigned char param, int errcode);
 		void ready();
 		
 	private slots:
 		void initContinue();
 		void read();
-		void writeCmd(ByteArray);
-		void ejectCard(bool = false);
+		void writeCmd(ByteArray cmd);
+		void ejectCard(bool err = false);
 };
 
 #endif // CARDREADER_H

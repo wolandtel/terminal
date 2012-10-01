@@ -2,6 +2,8 @@
 #include "mainwindow.h"
 #include "pindialog.h"
 #include "cardreader.h"
+#include "terminal.h"
+#include "debug.h"
 
 int main(int argc, char *argv[])
 {
@@ -13,17 +15,21 @@ int main(int argc, char *argv[])
 	p.setColor(QPalette::ButtonText, "white");
 	a.setPalette(p);
 	MainWindow w;
+	PinDialog pd(&w);
 	w.showFullScreen();
 	
-	Cardreader c;
+	Cardreader c(DBG_TTY);
 	
 	QObject::connect(&c, SIGNAL(initSucceeded()), &w, SLOT(displayReady()));
 	QObject::connect(&c, SIGNAL(initFailed()), &w, SLOT(displayError()));
-	QObject::connect(&c, SIGNAL(cardInserted()), &(w.pd), SLOT(open()));
 	QObject::connect(&c, SIGNAL(cardEject(bool)), &w, SLOT(ejectCard(bool)));
 	QObject::connect(&c, SIGNAL(cardEjected()), &w, SLOT(displayReady()));
-	QObject::connect(&(w.pd), SIGNAL(rejected()), &c, SLOT(ejectCard()));
-	QObject::connect(&(w.pd), SIGNAL(accepted()), &c, SLOT(ejectCard()));
+	
+	QObject::connect(&c, SIGNAL(cardInserted()), &pd, SLOT(open()));
+	QObject::connect(&pd, SIGNAL(rejected()), &c, SLOT(ejectCard()));
+	QObject::connect(&pd, SIGNAL(accepted()), &c, SLOT(ejectCard()));
+	
+	Terminal t(&c, &pd, DBG_TERMINAL_ID, DBG_SECRET, DBG_URL, DBG_CA);
 	
 	c.init();
 	

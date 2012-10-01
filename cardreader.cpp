@@ -2,7 +2,7 @@
 #include <QTimer>
 #include "cardreader.h"
 
-Cardreader::Cardreader(QObject *parent) :
+Cardreader::Cardreader(const QString &tty, QObject *parent) :
 	QObject(parent)
 {
 	m_state.initialized = false;
@@ -16,7 +16,7 @@ Cardreader::Cardreader(QObject *parent) :
 	settings.StopBits = STOP_1;
 	settings.DataBits = DATA_8;
 	
-	m_tty = new QextSerialPort("/dev/ttyS1", settings);
+	m_tty = new QextSerialPort(tty, settings);
 }
 
 void Cardreader::timerEvent(QTimerEvent *event)
@@ -243,8 +243,8 @@ void Cardreader::handleResponse(bool positive)
 			if (positive)
 			{
 				emit cardInserted();
+				sendCmd(CMD_LED, "20");
 				m_cardnum = m_rdata.left(CARDNUM_LENGTH + 5).right(CARDNUM_LENGTH);
-/*DEBUG*/				qDebug() << " = card : " << m_cardnum;
 			}
 			else
 			{
@@ -323,7 +323,7 @@ void Cardreader::handleCard(unsigned char param, int errcode)
 			{
 				case 8: // данные прочитаны
 				case 0:
-					sendCmd(CMD_MAGTRACK, 0x32); // Читать вторую дорожку
+					sendCmd(CMD_MAGTRACK, 0x32); // Читать вторую дорожку | FIX: проверить, закрыта ли защёлка.
 					break;
 				case 7: // карточка вставлена не до конца
 					ejectCard(true);

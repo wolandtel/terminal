@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network script
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,13 +19,20 @@ SOURCES += main.cpp\
     pindialog.cpp \
     cardreader.cpp \
     bytearray.cpp \
-    command.cpp
+    command.cpp \
+    terminal.cpp \
+    json.cpp \
+    request.cpp
 
 HEADERS  += mainwindow.h \
     pindialog.h \
     cardreader.h \
     bytearray.h \
-    command.h
+    command.h \
+    debug.h \
+    terminal.h \
+    json.h \
+    request.h
 
 FORMS    += mainwindow.ui \
     pindialog.ui
