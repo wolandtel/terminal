@@ -20,6 +20,7 @@ class Cardreader : public QObject
 		Q_OBJECT
 	public:
 		explicit Cardreader(const QString &tty, QObject *parent = 0);
+		~Cardreader();
 		void init();
 		QString cardnum() { return m_cardnum; };
 		

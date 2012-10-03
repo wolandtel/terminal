@@ -11,8 +11,6 @@ PinDialog::PinDialog(QWidget *parent) :
 #else
 	ui->pinLe->setCursor(Qt::BlankCursor);
 #endif
-	
-	connect(ui->OkPb, SIGNAL(clicked()), SIGNAL(gotPin()));
 }
 
 PinDialog::~PinDialog()

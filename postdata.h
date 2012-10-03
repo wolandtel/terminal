@@ -1,20 +1,20 @@
-#ifndef REQUEST_H
-#define REQUEST_H
+#ifndef POSTDATA_H
+#define POSTDATA_H
 
 #include <QVariantMap>
 
-class Request : public QVariantMap
+class PostData : public QVariantMap
 {
 	public:
-		explicit Request(unsigned long long id, const QString &secret);
+		explicit PostData(const QString &id, const QString &secret);
 		void setClient(const QString &card, const QString &pin);
 		void setAction(const QString &type, const QString &modifier);
 		void setParam(const QString &type, const QVariant &value);
-		QString prepare();
+		QByteArray content();
 	
 	private:
 		void clearAction();
 		void clear();
 };
 
-#endif // REQUEST_H
+#endif // POSTDATA_H

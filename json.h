@@ -15,12 +15,13 @@ class JSON
 		static QString encode(const QVariantMap &object);
 		static QString encode(const QVariantList &array);
 		static QString escape(const QString &str);
+		static QString unescape(const QString &str);
 		
 	private:
 		static QString encodeObject(const QVariantMap &object);
 		static QString encodeArray(const QVariantList &array);
 		static QString encodeValue(const QVariant &value);
-		static QString escape(const QChar &chr);
+		static void unescape(QVariant &var);
 };
 
 #endif // JSON_H

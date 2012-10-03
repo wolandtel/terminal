@@ -22,7 +22,7 @@ SOURCES += main.cpp\
     command.cpp \
     terminal.cpp \
     json.cpp \
-    request.cpp
+    postdata.cpp
 
 HEADERS  += mainwindow.h \
     pindialog.h \
@@ -32,7 +32,7 @@ HEADERS  += mainwindow.h \
     debug.h \
     terminal.h \
     json.h \
-    request.h
+    postdata.h
 
 FORMS    += mainwindow.ui \
     pindialog.ui

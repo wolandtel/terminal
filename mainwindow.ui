@@ -25,6 +25,11 @@
     <height>500</height>
    </size>
   </property>
+  <property name="font">
+   <font>
+    <family>DejaVu Sans</family>
+   </font>
+  </property>
   <property name="cursor">
    <cursorShape>BlankCursor</cursorShape>
   </property>

@@ -19,6 +19,11 @@ Cardreader::Cardreader(const QString &tty, QObject *parent) :
 	m_tty = new QextSerialPort(tty, settings);
 }
 
+Cardreader::~Cardreader()
+{
+	delete m_tty;
+}
+
 void Cardreader::timerEvent(QTimerEvent *event)
 {
 	int timerId = event->timerId();
@@ -206,18 +211,18 @@ void Cardreader::handleMsg()
 
 void Cardreader::handleResponse(bool positive)
 {
-	unsigned char cmd = *m_rdata.left(2).right(1).data();
-	unsigned char param = *m_rdata.left(3).right(1).data();
+	unsigned char cmd = *m_rdata.mid(1, 1).data();
+	unsigned char param = *m_rdata.mid(2, 1).data();
 	int errcode = 0;
 	ByteArray st1 = ByteArray(1, 0xFF);
 	ByteArray st0 = ByteArray(1, 0xFF);
 	if (positive)
 	{
-		st1 = m_rdata.left(4).right(1);
-		st0 = m_rdata.left(5).right(1);
+		st1 = m_rdata.mid(3, 1);
+		st0 = m_rdata.mid(4, 1);
 	}
 	else
-		errcode = m_rdata.left(5).right(2).toInt();
+		errcode = m_rdata.mid(3, 2).toInt();
 	
 #ifdef DEBUG
 	qDebug() << " i<< cmd = " << ByteArray(1, cmd).toHex()
@@ -244,7 +249,7 @@ void Cardreader::handleResponse(bool positive)
 			{
 				emit cardInserted();
 				sendCmd(CMD_LED, "20");
-				m_cardnum = m_rdata.left(CARDNUM_LENGTH + 5).right(CARDNUM_LENGTH);
+				m_cardnum = m_rdata.mid(5, CARDNUM_LENGTH);
 			}
 			else
 			{

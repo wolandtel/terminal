@@ -1,9 +1,10 @@
-#include "request.h"
+#include <QUrl>
+#include "postdata.h"
 #include "json.h"
 
-Request::Request(unsigned long long id, const QString &secret)
+PostData::PostData(const QString &id, const QString &secret)
 {
-	Request &self = *this;
+	PostData &self = *this;
 	
 	self["device"] = QVariantMap();
 	((QVariantMap &)self["device"])["id"] = id;
@@ -20,50 +21,51 @@ Request::Request(unsigned long long id, const QString &secret)
 	self["param"] = QVariantMap();
 }
 
-void Request::setClient(const QString &card, const QString &pin)
+void PostData::setClient(const QString &card, const QString &pin)
 {
-	Request &self = *this;
+	PostData &self = *this;
 	
 	clear();
 	((QVariantMap &)self["client"])["card"] = card;
 	((QVariantMap &)self["client"])["pin"] = pin;
 }
 
-void Request::setAction(const QString &type, const QString &modifier)
+void PostData::setAction(const QString &type, const QString &modifier)
 {
-	Request &self = *this;
+	PostData &self = *this;
 	
 	clearAction();
 	((QVariantMap &)self["action"])["type"] = type;
 	((QVariantMap &)self["action"])["modifier"] = modifier;
 }
 
-void Request::setParam(const QString &name, const QVariant &value)
+void PostData::setParam(const QString &name, const QVariant &value)
 {
-	Request &self = *this;
+	PostData &self = *this;
 	
 	((QVariantMap &)self["param"])[name] = value;
 }
 
-void Request::clearAction()
+void PostData::clearAction()
 {
-	Request &self = *this;
+	PostData &self = *this;
 	
 	((QVariant &)((QVariantMap &)self["action"])["type"]).clear();
 	((QVariant &)((QVariantMap &)self["action"])["modifier"]).clear();
 	((QVariantMap &)self["param"]).clear();
 }
 
-void Request::clear()
+void PostData::clear()
 {
-	Request &self = *this;
+	PostData &self = *this;
 	
 	clearAction();
 	((QVariant &)((QVariantMap &)self["client"])["card"]).clear();
 	((QVariant &)((QVariantMap &)self["client"])["pin"]).clear();
 }
 
-QString Request::prepare()
+QByteArray PostData::content()
 {
-	return JSON::encode(*this);
+	return "request=" + QUrl::toPercentEncoding(JSON::encode(*this));
 }
+

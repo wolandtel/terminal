@@ -9,6 +9,7 @@ QVariant JSON::decode(const QString &json, enum JSONContainer container)
 	if (!(((container & JSONObject) && (result.type() == QVariant::Map))
 				|| ((container & JSONArray) && (result.type() == QVariant::List))))
 		result = QVariant();
+	unescape(result);
 	return result;
 }
 
@@ -99,35 +100,89 @@ QString JSON::encodeValue(const QVariant &value)
 	return "";
 }
 
-QString JSON::escape(const QChar &chr)
+void JSON::unescape(QVariant &var)
 {
-	uint code = chr.unicode();
-	
-	if (chr.isPrint() && (code < 255))
-		return QString(chr);
-	
-	return "\\u" + (ByteArray(((char *)&code)[1]) + ByteArray(((char *)&code)[0])).toHex();
+	switch (var.type())
+	{
+		case QVariant::String:
+			var = unescape(var.toString());
+			break;
+		case QVariant::Map:
+		{
+			QVariantMap m = var.toMap();
+			QVariantMap::iterator i;
+			for (i = m.begin(); i != m.end(); i++)
+				unescape(i.value());
+			break;
+		}
+		case QVariant::List:
+		{
+			QVariantList l = var.toList();
+			QVariantList::iterator i;
+			for (i = l.begin(); i != l.end(); i++)
+				unescape(*i);
+			break;
+		}
+		case QVariant::StringList:
+		{
+			QStringList s = var.toStringList();
+			QStringList::iterator i;
+			for (i = s.begin(); i != s.end(); i++)
+				unescape(*i);
+			break;
+		}
+		default:;
+	}
 }
 
 QString JSON::escape(const QString &str)
 {
 	QString s(str);
-	s.replace(QRegExp("([\\\\\\\"/])"), "\\\\1")
-								.replace(QRegExp("\n"), "\\n")
-								.replace(QRegExp("\r"), "\\r")
-								.replace(QRegExp("\t"), "\\t")
-								.replace(QRegExp("\b"), "\\b")
-								.replace(QRegExp("\f"), "\\f");
+	s.replace(QRegExp("([\\\\\"/])"), "\\\\1")
+		.replace("\n", "\\n")
+		.replace("\r", "\\r")
+		.replace("\t", "\\t")
+		.replace("\b", "\\b")
+		.replace("\f", "\\f");
 	
 	int i = 0;
 	while (i < s.length())
 	{
-		QString after = escape(s[i]);
-		int l = after.length();
-		if (l > 1)
-			s.replace(i, 1, after);
-		i += l;
+		uint code = s[i].unicode();
+		if (s[i].isPrint() && (code < 255))
+		{
+			++i;
+			continue;
+		}
+		
+		s.replace(i, 1, "\\u" + (ByteArray(((char *)&code)[1]) + ByteArray(((char *)&code)[0])).toHex());
+		i += 6;
 	}
+	
+	return s;
+}
+
+QString JSON::unescape(const QString &str)
+{
+	QString s(str);
+	QRegExp uc("(^|[^\\\\])\\\\u[0-9a-fA-F]{4}");
+	int pos = s.indexOf(uc);
+	while (pos > -1)
+	{
+		if (s[pos] != '\\')
+			++pos;
+		
+		s.replace(pos, 6, QChar(s.mid(pos + 2, 4).toUShort(0, 16)));
+		pos = s.indexOf(uc, pos);
+	}
+	
+	s.replace(QRegExp("([^\\\\])\\\\u"), "\\1")
+		.replace(QRegExp("\\\\([^nrtbf])"), "\\1")
+		.replace("\\n", "\n")
+		.replace("\\r", "\r")
+		.replace("\\t", "\t")
+		.replace("\\b", "\b")
+		.replace("\\f", "\f");
 	
 	return s;
 }
