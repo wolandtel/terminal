@@ -1,27 +1,44 @@
 #ifndef JSON_H
 #define JSON_H
 
-class JSON
+#include <QtScript/QtScript>
+#include "jsonelement.h"
+
+class Json
 {
 	public:
-		enum JSONContainer
+		enum JsonContainer
 		{
-			JSONObject = 1,
-			JSONArray = 2,
-			JSONAny = 0xFF
+			JsonObject = 1,
+			JsonArray = 2,
+			JsonAny = 0xFF
 		};
 		
-		static QVariant decode(const QString &json, enum JSONContainer container = JSONAny);
-		static QString encode(const QVariantMap &object);
-		static QString encode(const QVariantList &array);
+		Json(const QString &json, enum JsonContainer container = JsonAny);
+		Json(const QVariantMap &object);
+		Json(const QVariantList &array);
+		~Json();
+		
+		QString toString() const;
+		const QVariant &toVariant() const;
+		
+		bool hasElement(const QVariant &idx) const;
+		const JsonElement operator[](const QVariant &idx) const;
+		
 		static QString escape(const QString &str);
 		static QString unescape(const QString &str);
-		
+	
+	protected:
+		JsonElement *m_container;
+	
 	private:
-		static QString encodeObject(const QVariantMap &object);
-		static QString encodeArray(const QVariantList &array);
-		static QString encodeValue(const QVariant &value);
-		static void unescape(QVariant &var);
+		mutable QString m_encoded;
+		
+		QVariant decode(const QScriptValue &val) const;
+		QString encodeObject(const QVariantMap &object) const;
+		QString encodeArray(const QVariantList &array) const;
+		QString encodeValue(const QVariant &value) const;
+		// static void unescape(QVariant &var);
 };
 
 #endif // JSON_H

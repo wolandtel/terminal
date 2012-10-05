@@ -1,7 +1,6 @@
 #include <QUrl>
 #include "postdata.h"
 #include "json.h"
-
 PostData::PostData(const QString &id, const QString &secret)
 {
 	PostData &self = *this;
@@ -20,6 +19,8 @@ PostData::PostData(const QString &id, const QString &secret)
 	
 	self["param"] = QVariantMap();
 }
+
+PostData::PostData(const QVariantMap &map) : QVariantMap(map) {}
 
 void PostData::setClient(const QString &card, const QString &pin)
 {
@@ -66,6 +67,6 @@ void PostData::clear()
 
 QByteArray PostData::content()
 {
-	return "request=" + QUrl::toPercentEncoding(JSON::encode(*this));
+	return "request=" + QUrl::toPercentEncoding(Json(*this).toString());
 }
 

@@ -21,6 +21,7 @@ SOURCES += main.cpp\
     bytearray.cpp \
     command.cpp \
     terminal.cpp \
+	jsonelement.cpp \
     json.cpp \
     postdata.cpp
 
@@ -31,6 +32,7 @@ HEADERS  += mainwindow.h \
     command.h \
     debug.h \
     terminal.h \
+	jsonelement.h \
     json.h \
     postdata.h
 

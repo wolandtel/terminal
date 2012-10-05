@@ -7,10 +7,19 @@
 #include "pindialog.h"
 #include "postdata.h"
 
+#define RA_POSTDATA QNetworkRequest::User
+
 class Terminal : public QObject
 {
 		Q_OBJECT
 	public:
+		enum NetworkError
+		{
+			ConnectionFailed,
+			LoginFailed,
+			OtherError
+		};
+		
 		explicit Terminal(Cardreader *cardreader,
 											PinDialog *pinDialog,
 											const QString &id,
@@ -21,6 +30,10 @@ class Terminal : public QObject
 		~Terminal();
 		
 	signals:
+		void sessionStartFailed(enum NetworkError error);
+		void sessionStopFailed(enum NetworkError error);
+		void sessionStarted();
+		void sessionStopped();
 		
 	public slots:
 		
@@ -42,4 +55,4 @@ class Terminal : public QObject
 		void sslErrors(QList<QSslError> errors);
 };
 
-#endif // NETCLIENT_H
+#endif // TERMINAL_H

@@ -53,6 +53,7 @@ Terminal::~Terminal()
 void Terminal::request()
 {
 	m_error = QNetworkReply::NoError;
+	m_request->setAttribute(RA_POSTDATA, *m_postData);
 	QNetworkReply *reply = m_https.post(*m_request, m_postData->content());
 	connect(reply, SIGNAL(finished()), SLOT(readReply()));
 	connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(networkError(QNetworkReply::NetworkError)));
@@ -70,14 +71,50 @@ void Terminal::readReply()
 {
 	QNetworkReply *reply = (QNetworkReply *)sender();
 	QByteArray data = reply->readAll();
+	const PostData postData = reply->request().attribute(RA_POSTDATA).toMap();
+#ifdef DEBUG
+	qDebug() << " i RR : " << reply->request().attribute(RA_POSTDATA);
+#endif
+	const QString action = postData["action"].toMap()["type"].toString();
+	const QString modifier = postData["action"].toMap()["modifier"].toString();
 	reply->deleteLater();
 	
 	if (m_error != QNetworkReply::NoError)
+	{
+		if (action == "session")
+		{
+			if (modifier == "start")
+				emit sessionStartFailed(ConnectionFailed);
+			else if (modifier == "stop")
+				emit sessionStopFailed(ConnectionFailed);
+		}
 		return;
+	}
 	
-	qDebug() << "JJ : " << data;
-	QVariant response = JSON::decode(data, JSON::JSONObject);
-	qDebug() << "DD : " << response;
+	Json response = Json(data, Json::JsonObject); // FIX: обработать ошибку
+#ifdef DEBUG
+	qDebug() << "NN << " << response.toVariant();
+#endif
+	
+	int code = response["code"].toInt();
+	if (code != 0)
+	{
+		switch (code)
+		{
+		}
+		return;
+	}
+	
+	if (action == "session")
+	{
+		if (modifier == "start")
+		{
+			// balance = ((QVariantMap &)response["result"]["balance"]x;
+			emit sessionStarted();
+		}
+		else if (modifier == "stop")
+			emit sessionStopped();
+	}
 }
 
 void Terminal::networkError(QNetworkReply::NetworkError error)

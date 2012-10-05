@@ -1,29 +1,148 @@
-#include <QtScript/QtScript>
 #include "json.h"
 #include "bytearray.h"
 
-QVariant JSON::decode(const QString &json, enum JSONContainer container)
+Json::Json(const QString &json, enum JsonContainer container)
 {
-  QScriptEngine engine;
-	QVariant result = engine.evaluate("(" + json + ")").toVariant();
-	if (!(((container & JSONObject) && (result.type() == QVariant::Map))
-				|| ((container & JSONArray) && (result.type() == QVariant::List))))
-		result = QVariant();
-	unescape(result);
+	QScriptEngine engine;
+	QScriptValue val = engine.evaluate("(" + json + ")");
+	
+	if (((container & JsonObject) && (val.isObject()))
+		|| ((container & JsonArray) && (val.isArray())))
+		m_container = new JsonElement(decode(val));
+	else
+		m_container = new JsonElement();
+}
+
+Json::Json(const QVariantMap &object)
+{
+	m_container = new JsonElement(object);
+}
+
+Json::Json(const QVariantList &array)
+{
+	m_container = new JsonElement(array);
+}
+
+Json::~Json()
+{
+	delete m_container;
+}
+
+QString Json::toString() const
+{
+	if (m_encoded.isNull())
+		m_encoded = encodeValue(*m_container);
+	
+	return m_encoded;
+}
+
+const QVariant &Json::toVariant() const
+{
+	return *m_container;
+}
+
+bool Json::hasElement(const QVariant &idx) const
+{
+	return m_container->hasElement(idx);
+}
+
+const JsonElement Json::operator[](const QVariant &idx) const
+{
+	return (*m_container)[idx];
+}
+
+QString Json::escape(const QString &str)
+{
+	QString s(str);
+	s.replace(QRegExp("([\\\\\"/])"), "\\\\1")
+		.replace("\n", "\\n")
+		.replace("\r", "\\r")
+		.replace("\t", "\\t")
+		.replace("\b", "\\b")
+		.replace("\f", "\\f");
+	
+	int i = 0;
+	while (i < s.length())
+	{
+		uint code = s[i].unicode();
+		if (s[i].isPrint() && (code < 255))
+		{
+			++i;
+			continue;
+		}
+		
+		s.replace(i, 1, "\\u" + (ByteArray(((char *)&code)[1]) + ByteArray(((char *)&code)[0])).toHex());
+		i += 6;
+	}
+	
+	return s;
+}
+
+QString Json::unescape(const QString &str)
+{
+	QString s(str);
+	QRegExp uc("(^|[^\\\\])\\\\u[0-9a-fA-F]{4}");
+	int pos = s.indexOf(uc);
+	while (pos > -1)
+	{
+		if (s[pos] != '\\')
+			++pos;
+		
+		s.replace(pos, 6, QChar(s.mid(pos + 2, 4).toUShort(0, 16)));
+		pos = s.indexOf(uc, pos);
+	}
+	
+	s.replace(QRegExp("([^\\\\])\\\\u"), "\\1")
+		.replace(QRegExp("\\\\([^nrtbf])"), "\\1")
+		.replace("\\n", "\n")
+		.replace("\\r", "\r")
+		.replace("\\t", "\t")
+		.replace("\\b", "\b")
+		.replace("\\f", "\f");
+	
+	return s;
+}
+
+QVariant Json::decode(const QScriptValue &val) const
+{
+	QVariant result;
+	
+	if (val.isArray())
+	{
+		QVariantList list;
+		QScriptValueIterator i(val);
+		while (i.hasNext())
+		{
+			i.next();
+			QScriptValue v = i.value();
+			if (v.isObject() || v.isArray())
+				list << decode(v);
+			else
+				list << v.toVariant();
+		}
+		result = list;
+	}
+	else if (val.isObject())
+	{
+		QVariantMap map;
+		QScriptValueIterator i(val);
+		while (i.hasNext())
+		{
+			i.next();
+			QString n = i.name();
+			QScriptValue v = i.value();
+			if (v.isObject() || v.isArray())
+				map[n] = decode(v);
+			else
+				map[n] = v.toVariant();
+		}
+		result = map;
+	}
+	
 	return result;
 }
 
-QString JSON::encode(const QVariantMap &object)
-{
-	return encodeObject(object);
-}
-
-QString JSON::encode(const QVariantList &array)
-{
-	return encodeArray(array);
-}
-
-QString JSON::encodeObject(const QVariantMap &object)
+QString Json::encodeObject(const QVariantMap &object) const
 {
 	QString json;
 	QVariantMap::const_iterator i;
@@ -46,7 +165,7 @@ QString JSON::encodeObject(const QVariantMap &object)
 	return json;
 }
 
-QString JSON::encodeArray(const QVariantList &array)
+QString Json::encodeArray(const QVariantList &array) const
 {
 	QString json;
 	QVariantList::const_iterator i;
@@ -68,7 +187,7 @@ QString JSON::encodeArray(const QVariantList &array)
 	return json;
 }
 
-QString JSON::encodeValue(const QVariant &value)
+QString Json::encodeValue(const QVariant &value) const
 {
 	if (value.isNull())
 		return "null";
@@ -100,7 +219,8 @@ QString JSON::encodeValue(const QVariant &value)
 	return "";
 }
 
-void JSON::unescape(QVariant &var)
+/* Вроде, и без этого всё работает
+void Json::unescape(QVariant &var)
 {
 	switch (var.type())
 	{
@@ -134,55 +254,4 @@ void JSON::unescape(QVariant &var)
 		default:;
 	}
 }
-
-QString JSON::escape(const QString &str)
-{
-	QString s(str);
-	s.replace(QRegExp("([\\\\\"/])"), "\\\\1")
-		.replace("\n", "\\n")
-		.replace("\r", "\\r")
-		.replace("\t", "\\t")
-		.replace("\b", "\\b")
-		.replace("\f", "\\f");
-	
-	int i = 0;
-	while (i < s.length())
-	{
-		uint code = s[i].unicode();
-		if (s[i].isPrint() && (code < 255))
-		{
-			++i;
-			continue;
-		}
-		
-		s.replace(i, 1, "\\u" + (ByteArray(((char *)&code)[1]) + ByteArray(((char *)&code)[0])).toHex());
-		i += 6;
-	}
-	
-	return s;
-}
-
-QString JSON::unescape(const QString &str)
-{
-	QString s(str);
-	QRegExp uc("(^|[^\\\\])\\\\u[0-9a-fA-F]{4}");
-	int pos = s.indexOf(uc);
-	while (pos > -1)
-	{
-		if (s[pos] != '\\')
-			++pos;
-		
-		s.replace(pos, 6, QChar(s.mid(pos + 2, 4).toUShort(0, 16)));
-		pos = s.indexOf(uc, pos);
-	}
-	
-	s.replace(QRegExp("([^\\\\])\\\\u"), "\\1")
-		.replace(QRegExp("\\\\([^nrtbf])"), "\\1")
-		.replace("\\n", "\n")
-		.replace("\\r", "\r")
-		.replace("\\t", "\t")
-		.replace("\\b", "\b")
-		.replace("\\f", "\f");
-	
-	return s;
-}
+*/
