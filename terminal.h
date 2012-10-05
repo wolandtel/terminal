@@ -20,13 +20,13 @@ class Terminal : public QObject
 			OtherError
 		};
 		
-		explicit Terminal(Cardreader *cardreader,
-											PinDialog *pinDialog,
-											const QString &id,
-											const QString &secret,
-											const QString &url,
-											const QString &CApath,
-											QObject *parent = 0);
+		Terminal(Cardreader *cardreader,
+					PinDialog *pinDialog,
+					const QString &id,
+					const QString &secret,
+					const QString &url,
+					const QString &CApath,
+					QObject *parent = 0);
 		~Terminal();
 		
 	signals:

@@ -2,43 +2,87 @@
 #define JSON_H
 
 #include <QtScript/QtScript>
-#include "jsonelement.h"
+#include <QVariant>
+#include <QMap>
+#include <QList>
+#include "jsonindex.h"
+
+class Json;
+
+typedef QMap<QString,Json> JsonObject;
+typedef QList<Json> JsonArray;
 
 class Json
 {
 	public:
-		enum JsonContainer
+		enum JsonType
 		{
-			JsonObject = 1,
-			JsonArray = 2,
-			JsonAny = 0xFF
+			Null,
+			Object,
+			Array,
+			String,
+			Number,
+			Bool
 		};
 		
-		Json(const QString &json, enum JsonContainer container = JsonAny);
+		explicit Json();
+		Json(const JsonObject &object);
+		Json(const JsonArray &array);
+		Json(const QString &string, bool parse = false);
+		Json(const int val);
+		Json(const double val);
+		Json(const bool val);
+		Json(const Json &elem);
+		Json(const QVariant &elem);
 		Json(const QVariantMap &object);
 		Json(const QVariantList &array);
 		~Json();
 		
-		QString toString() const;
-		const QVariant &toVariant() const;
+		void parse(const QString &json);
+		QString toString(bool escape = true) const;
+		QString dump() const;
 		
-		bool hasElement(const QVariant &idx) const;
-		const JsonElement operator[](const QVariant &idx) const;
+		inline enum JsonType type() const { return m_type; }
+		
+		inline bool isNull() const { return m_type == Null; }
+		inline bool isObject() const { return m_type == Object; }
+		inline bool isArray() const { return m_type == Array; }
+		inline bool isString() const { return m_type == String; }
+		inline bool isNumber() const { return m_type == Number; }
+		inline bool isBool() const { return m_type == Bool; }
+		
+		const JsonObject toObject() const;
+		const JsonArray toArray() const;
+		double toNumber() const;
+		bool toBool() const;
+		int toInt() const;
+		
+		bool contains(const JsonIndex &idx) const;
+		const Json operator[](const JsonIndex &idx) const;
 		
 		static QString escape(const QString &str);
 		static QString unescape(const QString &str);
 	
-	protected:
-		JsonElement *m_container;
-	
 	private:
-		mutable QString m_encoded;
+		enum JsonType m_type;
+		void *m_data;
+		bool m_constructed;
 		
-		QVariant decode(const QScriptValue &val) const;
-		QString encodeObject(const QVariantMap &object) const;
-		QString encodeArray(const QVariantList &array) const;
-		QString encodeValue(const QVariant &value) const;
-		// static void unescape(QVariant &var);
+		void setNull();
+		void setObject(const JsonObject &object);
+		void setArray(const JsonArray &array);
+		void setString(const QString &string);
+		void setNumber(const int val);
+		void setNumber(const double val);
+		void setBool(const bool val);
+		void setJson(const Json &json);
+		void setVariant(const QVariant &elem);
+		void setObject(const QVariantMap &object);
+		void setArray(const QVariantList &array);
+		void setArray(const QStringList &array);
+		QString objectToString(bool escape = true) const;
+		QString arrayToString(bool escape = true) const;
+		Json parse(const QScriptValue &sv);
 };
 
 #endif // JSON_H

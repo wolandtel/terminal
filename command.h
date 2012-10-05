@@ -42,13 +42,13 @@ class Command : public QObject
 		Q_OBJECT
 	public:
 		Command(QObject *, const ByteArray &, const ByteArray &);
-		inline unsigned char code() { return m_code; };
-		inline unsigned char param() { return m_param; };
+		inline unsigned char code() { return m_code; }
+		inline unsigned char param() { return m_param; }
 		void send(int timeout = 0);
 		void setNext(Command *next);
-		inline Command *next() { return m_next; };
+		inline Command *next() { return m_next; }
 		bool atype(int atype);
-		inline int waitBytes () { return m_waitbytes; };
+		inline int waitBytes () { return m_waitbytes; }
 		
 	signals:
 		void send(ByteArray);

@@ -91,9 +91,9 @@ void Terminal::readReply()
 		return;
 	}
 	
-	Json response = Json(data, Json::JsonObject); // FIX: обработать ошибку
+	Json response = Json(data, true); // FIX: обработать ошибку
 #ifdef DEBUG
-	qDebug() << "NN << " << response.toVariant();
+	qDebug() << "NN << " << response.dump();
 #endif
 	
 	int code = response["code"].toInt();
