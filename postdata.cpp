@@ -1,34 +1,38 @@
 #include <QUrl>
 #include "postdata.h"
-#include "json.h"
+
+PostData::PostData() : Json() {}
+
 PostData::PostData(const QString &id, const QString &secret)
 {
-	PostData &self = *this;
+	JsonObject o;
 	
-	self["device"] = QVariantMap();
-	((QVariantMap &)self["device"])["id"] = id;
-	((QVariantMap &)self["device"])["secret"] = secret;
+	o["device"] = JsonObject();
+	o["device"]["id"] = id;
+	o["device"]["secret"] = secret;
 	
-	self["client"] = QVariantMap();
-	((QVariantMap &)self["client"])["card"];
-	((QVariantMap &)self["client"])["pin"];
+	o["client"] = JsonObject();
+	o["client"]["card"];
+	o["client"]["pin"];
 	
-	self["action"] = QVariantMap();
-	((QVariantMap &)self["action"])["type"];
-	((QVariantMap &)self["action"])["modifier"];
+	o["action"] = JsonObject();
+	o["action"]["type"];
+	o["action"]["modifier"];
 	
-	self["param"] = QVariantMap();
+	o["param"] = JsonObject();
+	
+	setValue(o);
 }
 
-PostData::PostData(const QVariantMap &map) : QVariantMap(map) {}
+PostData::PostData(const JsonObject &object) : Json(object) {}
 
 void PostData::setClient(const QString &card, const QString &pin)
 {
 	PostData &self = *this;
 	
 	clear();
-	((QVariantMap &)self["client"])["card"] = card;
-	((QVariantMap &)self["client"])["pin"] = pin;
+	self["client"]["card"] = card;
+	self["client"]["pin"] = pin;
 }
 
 void PostData::setAction(const QString &type, const QString &modifier)
@@ -36,24 +40,24 @@ void PostData::setAction(const QString &type, const QString &modifier)
 	PostData &self = *this;
 	
 	clearAction();
-	((QVariantMap &)self["action"])["type"] = type;
-	((QVariantMap &)self["action"])["modifier"] = modifier;
+	self["action"]["type"] = type;
+	self["action"]["modifier"] = modifier;
 }
 
-void PostData::setParam(const QString &name, const QVariant &value)
+void PostData::setParam(const QString &name, const Json &value)
 {
 	PostData &self = *this;
 	
-	((QVariantMap &)self["param"])[name] = value;
+	self["param"][name] = value;
 }
 
 void PostData::clearAction()
 {
 	PostData &self = *this;
 	
-	((QVariant &)((QVariantMap &)self["action"])["type"]).clear();
-	((QVariant &)((QVariantMap &)self["action"])["modifier"]).clear();
-	((QVariantMap &)self["param"]).clear();
+	self["action"]["type"].setValue();
+	self["action"]["modifier"].setValue();
+	self["param"].setValue();
 }
 
 void PostData::clear()
@@ -61,12 +65,12 @@ void PostData::clear()
 	PostData &self = *this;
 	
 	clearAction();
-	((QVariant &)((QVariantMap &)self["client"])["card"]).clear();
-	((QVariant &)((QVariantMap &)self["client"])["pin"]).clear();
+	self["client"]["card"].setValue();
+	self["client"]["pin"].setValue();
 }
 
 QByteArray PostData::content()
 {
-	return "request=" + QUrl::toPercentEncoding(Json(*this).toString());
+	return "request=" + QUrl::toPercentEncoding(toString());
 }
 

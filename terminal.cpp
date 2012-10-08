@@ -53,7 +53,7 @@ Terminal::~Terminal()
 void Terminal::request()
 {
 	m_error = QNetworkReply::NoError;
-	m_request->setAttribute(RA_POSTDATA, *m_postData);
+	m_request->setAttribute(RA_POSTDATA, qVariantFromValue(*m_postData));
 	QNetworkReply *reply = m_https.post(*m_request, m_postData->content());
 	connect(reply, SIGNAL(finished()), SLOT(readReply()));
 	connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(networkError(QNetworkReply::NetworkError)));
@@ -71,12 +71,12 @@ void Terminal::readReply()
 {
 	QNetworkReply *reply = (QNetworkReply *)sender();
 	QByteArray data = reply->readAll();
-	const PostData postData = reply->request().attribute(RA_POSTDATA).toMap();
+	const PostData postData = reply->request().attribute(RA_POSTDATA).value<PostData>();
 #ifdef DEBUG
 	qDebug() << " i RR : " << reply->request().attribute(RA_POSTDATA);
 #endif
-	const QString action = postData["action"].toMap()["type"].toString();
-	const QString modifier = postData["action"].toMap()["modifier"].toString();
+	const QString &action = postData["action"]["type"].toString();
+	const QString &modifier = postData["action"]["modifier"].toString();
 	reply->deleteLater();
 	
 	if (m_error != QNetworkReply::NoError)
