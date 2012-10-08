@@ -10,13 +10,13 @@ Json::Json()
 Json::Json(const JsonObject &object)
 {
 	m_type = Null;
-	setObject(object);
+	setValue(object);
 }
 
 Json::Json(const JsonArray &array)
 {
 	m_type = Null;
-	setArray(array);
+	setValue(array);
 }
 
 Json::Json(const QString &string, bool parse)
@@ -25,49 +25,49 @@ Json::Json(const QString &string, bool parse)
 	if (parse)
 		this->parse(string);
 	else
-		setString(string);
+		setValue(string);
 }
 
 Json::Json(const int val)
 {
 	m_type = Null;
-	setNumber(val);
+	setValue(val);
 }
 
 Json::Json(const double val)
 {
 	m_type = Null;
-	setNumber(val);
+	setValue(val);
 }
 
 Json::Json(const bool val)
 {
 	m_type = Null;
-	setBool(val);
+	setValue(val);
 }
 
 Json::Json(const Json &json)
 {
 	m_type = Null;
-	setJson(json);
+	setValue(json);
 }
 
 Json::Json(const QVariant &elem)
 {
 	m_type = Null;
-	setVariant(elem);
+	setValue(elem);
 }
 
 Json::Json(const QVariantMap &object)
 {
 	m_type = Null;
-	setObject(object);
+	setValue(object);
 }
 
 Json::Json(const QVariantList &array)
 {
 	m_type = Null;
-	setArray(array);
+	setValue(array);
 }
 
 Json::~Json()
@@ -77,8 +77,7 @@ Json::~Json()
 
 void Json::parse(const QString &json)
 {
-	setNull();
-	setJson(parse(QScriptEngine().evaluate("(" + json + ")")));
+	setValue(parse(QScriptEngine().evaluate("(" + json + ")")));
 }
 
 QString Json::toString(bool escape) const
@@ -113,18 +112,47 @@ QString Json::dump() const
 	return toString(false);
 }
 
-const JsonObject Json::toObject() const
+const JsonObject &Json::toObject() const
 {
+	static JsonObject err;
+	
 	if (isObject())
 		return *((JsonObject *)m_data);
-	return JsonObject();
+	
+	return err = JsonObject();
 }
 
-const JsonArray Json::toArray() const
+JsonObject &Json::toObject()
 {
+	static JsonObject err;
+	
+	if (isObject())
+		return *((JsonObject *)m_data);
+	
+	return err = JsonObject();
+}
+
+const JsonArray &Json::toArray() const
+{
+	static JsonArray err;
+	
 	if (isArray())
 		return *((JsonArray *)m_data);
-	return JsonArray() << *this;
+	
+	err = JsonArray();
+	err << *this;
+	
+	return err;
+}
+
+JsonArray &Json::toArray()
+{
+	static JsonArray err;
+	
+	if (isArray())
+		return *((JsonArray *)m_data);
+	
+	return err = JsonArray();
 }
 
 double Json::toNumber() const
@@ -183,9 +211,8 @@ bool Json::contains(const JsonIndex &idx) const
 		if (isArray())
 		{
 			int i = idx.toInt();
-			return (0 <= i) && (i >= toArray().size());
+			return (0 <= i) && (i <= toArray().size());
 		}
-		
 	}
 	else if (isObject())
 		return toObject().contains(idx.toString());
@@ -193,16 +220,70 @@ bool Json::contains(const JsonIndex &idx) const
 	return false;
 }
 
-const Json Json::operator[](const JsonIndex &idx) const
+const Json &Json::operator[](const JsonIndex &idx) const
 {
+	static Json json;
+	
 	if (idx.isInt())
 	{
 		if (isArray())
-			return toArray()[idx.toInt()];
+		{
+			int i = idx.toInt();
+			const JsonArray &array = toArray();
+			
+			if ((0 <= i) && (i <= array.size()))
+				return json = array[i];
+		}
 	}
 	else if (isObject())
-		return toObject()[idx.toString()];
+	{
+		const JsonObject &object = toObject();
+		const QString &i = idx.toString();
+		
+		if (object.contains(i))
+			return json = object[i];
+	}
 	
+	return json = Json();
+}
+
+Json &Json::operator[](const JsonIndex &idx)
+{
+	Json err;
+	
+	if (idx.isInt())
+	{
+		if (isArray())
+		{
+			int i = idx.toInt();
+			JsonArray &array = toArray();
+			
+			if ((0 <= i) && (i <= array.size()))
+				return array[i];
+			else
+			{
+				array << Json();
+				return array[array.size()];
+			}
+		}
+	}
+	else if (isObject())
+	{
+		JsonObject &object = toObject();
+		const QString &i = idx.toString();
+		
+		if (!object.contains(i))
+			object[i] = Json();
+		
+		return object[i];
+	}
+	
+	return err = Json();
+}
+
+Json &Json::operator=(const Json &val)
+{
+	setValue(val);
 	return *this;
 }
 
@@ -266,7 +347,7 @@ void Json::setNull()
 	switch (m_type)
 	{
 		case Object:
-			delete (JsonObject *)m_data;
+			delete ((JsonObject *)m_data);
 			break;
 		case Array:
 			delete (JsonArray *)m_data;
@@ -286,36 +367,33 @@ void Json::setNull()
 	m_type = Null;
 }
 
-void Json::setObject(const JsonObject &object)
+void Json::setValue(const JsonObject &val)
 {
 	setNull();
 	m_type = Object;
-	m_data = new JsonObject(object);
+	m_data = new JsonObject(val);
 }
 
-void Json::setArray(const JsonArray &array)
+void Json::setValue(const JsonArray &val)
 {
 	setNull();
 	m_type = Array;
-	m_data = new JsonArray(array);
+	m_data = new JsonArray(val);
 }
 
-void Json::setString(const QString &string)
+void Json::setValue(const QString &val)
 {
 	setNull();
 	m_type = String;
-	m_data = new QString(string);
+	m_data = new QString(val);
 }
 
-void Json::setNumber(const int val)
+void Json::setValue(const int val)
 {
-	setNull();
-	m_type = Number;
-	m_data = new double;
-	*((int *)m_data) = val;
+	setValue((const double)val);
 }
 
-void Json::setNumber(const double val)
+void Json::setValue(const double val)
 {
 	setNull();
 	m_type = Number;
@@ -323,7 +401,7 @@ void Json::setNumber(const double val)
 	*((double *)m_data) = val;
 }
 
-void Json::setBool(const bool val)
+void Json::setValue(const bool val)
 {
 	setNull();
 	m_type = Bool;
@@ -331,54 +409,54 @@ void Json::setBool(const bool val)
 	*((bool *)m_data) = val;
 }
 
-void Json::setJson(const Json &json)
+void Json::setValue(const Json &val)
 {
 	setNull();
-	switch (json.type())
+	switch (val.type())
 	{
 		case Null:
 			setNull();
 			break;
 		case Object:
-			setObject(json.toObject());
+			setValue(val.toObject());
 			break;
 		case Array:
-			setArray(json.toArray());
+			setValue(val.toArray());
 			break;
 		case String:
-			setString(json.toString(false));
+			setValue(val.toString(false));
 			break;
 		case Number:
-			setNumber(json.toNumber());
+			setValue(val.toNumber());
 			break;
 		case Bool:
-			setBool(json.toBool());
+			setValue(val.toBool());
 			break;
 	}
 }
 
-void Json::setVariant(const QVariant &elem)
+void Json::setValue(const QVariant &val)
 {
 	setNull();
-	if (elem.isNull())
+	if (val.isNull())
 		return;
 	
-	switch (elem.type())
+	switch (val.type())
 	{
 		case QVariant::Map:
-			setObject(elem.toMap());
+			setValue(val.toMap());
 			break;
 		case QVariant::List:
-			setArray(elem.toList());
+			setValue(val.toList());
 			break;
 		case QVariant::StringList:
-			setArray(elem.toStringList());
+			setValue(val.toStringList());
 			break;
 		case QVariant::Bool:
-			setBool(elem.toBool());
+			setValue(val.toBool());
 			break;
 		case QVariant::String:
-			setString(elem.toString());
+			setValue(val.toString());
 			break;
 		case QVariant::Int:
 		case QVariant::Double:
@@ -386,37 +464,37 @@ void Json::setVariant(const QVariant &elem)
 		case QVariant::UInt:
 		case QVariant::ULongLong:
 		case QVariant::Size:
-			setNumber(elem.toDouble());
+			setValue(val.toDouble());
 			break;
 		default:;
 	}
 }
 
-void Json::setObject(const QVariantMap &object)
+void Json::setValue(const QVariantMap &val)
 {
 	JsonObject jo;
 	QVariantMap::const_iterator i;
-	for (i = object.constBegin(); i != object.constEnd(); i++)
+	for (i = val.constBegin(); i != val.constEnd(); i++)
 		jo[i.key()] = Json((QVariant)i.value());
-	setObject(jo);
+	setValue(jo);
 }
 
-void Json::setArray(const QVariantList &array)
+void Json::setValue(const QVariantList &val)
 {
 	JsonArray ja;
 	QVariantList::const_iterator i;
-	for (i = array.constBegin(); i != array.constEnd(); i++)
+	for (i = val.constBegin(); i != val.constEnd(); i++)
 		ja << Json((QVariant)*i);
-	setArray(ja);
+	setValue(ja);
 }
 
-void Json::setArray(const QStringList &array)
+void Json::setValue(const QStringList &val)
 {
 	JsonArray ja;
 	QStringList::const_iterator i;
-	for (i = array.constBegin(); i != array.constEnd(); i++)
+	for (i = val.constBegin(); i != val.constEnd(); i++)
 		ja << Json((QString)*i);
-	setArray(ja);
+	setValue(ja);
 }
 
 QString Json::objectToString(bool escape) const
@@ -432,7 +510,8 @@ QString Json::objectToString(bool escape) const
 		else
 			json += ",";
 		
-		json += i.key() + ":";
+		QString key = (escape ? "\"" + this->escape(i.key()) + "\"" : i.key());
+		json += key + ":";
 		json += i.value().toString(escape);
 	}
 	
@@ -496,7 +575,7 @@ Json Json::parse(const QScriptValue &sv)
 	}
 	
 	if (sv.isString())
-		setString(sv.toString());
+		setValue(sv.toString());
 	
 	if (sv.isNumber())
 		return Json(sv.toNumber());

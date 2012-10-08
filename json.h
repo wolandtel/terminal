@@ -32,7 +32,7 @@ class Json
 		Json(const int val);
 		Json(const double val);
 		Json(const bool val);
-		Json(const Json &elem);
+		Json(const Json &json);
 		Json(const QVariant &elem);
 		Json(const QVariantMap &object);
 		Json(const QVariantList &array);
@@ -51,14 +51,19 @@ class Json
 		inline bool isNumber() const { return m_type == Number; }
 		inline bool isBool() const { return m_type == Bool; }
 		
-		const JsonObject toObject() const;
-		const JsonArray toArray() const;
+		const JsonObject &toObject() const;
+		const JsonArray &toArray() const;
 		double toNumber() const;
 		bool toBool() const;
 		int toInt() const;
 		
+		JsonObject &toObject();
+		JsonArray &toArray();
+		
 		bool contains(const JsonIndex &idx) const;
-		const Json operator[](const JsonIndex &idx) const;
+		const Json &operator[](const JsonIndex &idx) const;
+		Json &operator[](const JsonIndex &idx);
+		Json &operator=(const Json &val);
 		
 		static QString escape(const QString &str);
 		static QString unescape(const QString &str);
@@ -69,19 +74,22 @@ class Json
 		bool m_constructed;
 		
 		void setNull();
-		void setObject(const JsonObject &object);
-		void setArray(const JsonArray &array);
-		void setString(const QString &string);
-		void setNumber(const int val);
-		void setNumber(const double val);
-		void setBool(const bool val);
-		void setJson(const Json &json);
-		void setVariant(const QVariant &elem);
-		void setObject(const QVariantMap &object);
-		void setArray(const QVariantList &array);
-		void setArray(const QStringList &array);
+		
+		void setValue(const JsonObject &val);
+		void setValue(const JsonArray &val);
+		void setValue(const QString &val);
+		void setValue(const int val);
+		void setValue(const double val);
+		void setValue(const bool val);
+		void setValue(const Json &val);
+		void setValue(const QVariant &val);
+		void setValue(const QVariantMap &val);
+		void setValue(const QVariantList &val);
+		void setValue(const QStringList &val);
+		
 		QString objectToString(bool escape = true) const;
 		QString arrayToString(bool escape = true) const;
+		
 		Json parse(const QScriptValue &sv);
 };
 
