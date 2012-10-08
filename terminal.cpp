@@ -109,8 +109,9 @@ void Terminal::readReply()
 	{
 		if (modifier == "start")
 		{
-			// balance = ((QVariantMap &)response["result"]["balance"]x;
-			emit sessionStarted();
+			m_session = response["result"]["id"].toString();
+			m_balance = response["result"]["balance"].toNumber();
+			emit sessionStarted(m_balance);
 		}
 		else if (modifier == "stop")
 			emit sessionStopped();

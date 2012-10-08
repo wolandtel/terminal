@@ -32,7 +32,7 @@ class Terminal : public QObject
 	signals:
 		void sessionStartFailed(enum NetworkError error);
 		void sessionStopFailed(enum NetworkError error);
-		void sessionStarted();
+		void sessionStarted(double);
 		void sessionStopped();
 		
 	public slots:
@@ -45,6 +45,8 @@ class Terminal : public QObject
 		QNetworkAccessManager m_https;
 		PostData *m_postData;
 		QNetworkReply::NetworkError m_error;
+		QString m_session;
+		double m_balance;
 		
 		void request();
 		
