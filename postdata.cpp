@@ -1,7 +1,7 @@
 #include <QUrl>
 #include "postdata.h"
 
-PostData::PostData() : Json() {}
+PostData::PostData() {}
 
 PostData::PostData(const QString &id, const QString &secret)
 {

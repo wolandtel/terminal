@@ -1,27 +1,25 @@
 #include "terminal.h"
 #include "json.h"
 
-Terminal::Terminal(Cardreader *cardreader,
-									 PinDialog *pinDialog,
-									 const QString &id,
-									 const QString &secret,
-									 const QString &url,
-									 const QString &CApath,
-									 QObject *parent) :
+Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	QObject(parent)
 {
-	m_cardreader = cardreader;
-	m_pinDialog = pinDialog;
+	m_mainWindow = new MainWindow();
+	m_mainWindow->showFullScreen();
 	
-	m_id = id;
-	m_secret = secret;
+	m_cardreader = new Cardreader(conf["cardreader"]["device"].toString());
+	m_pinDialog	= new PinDialog(m_mainWindow);
+	m_balanceDialog = new BalanceDialog(m_mainWindow);
 	
-	m_request = new QNetworkRequest(QUrl(url));
+	m_id = conf["terminal"]["id"].toString();
+	m_secret = conf["terminal"]["secret"].toString();
+	
+	m_request = new QNetworkRequest(QUrl(conf["network"]["url"].toString()));
 	m_request->setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
 	m_request->setAttribute(QNetworkRequest::CacheSaveControlAttribute, false);
 	
 	QList<QSslCertificate> CAs;
-	QFile *CAfile = new QFile(CApath);
+	QFile *CAfile = new QFile(conf["network"]["CA"].toString());
 	if (CAfile->exists() && CAfile->open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		QSslCertificate CA(CAfile);
@@ -39,15 +37,35 @@ Terminal::Terminal(Cardreader *cardreader,
 		delete CAfile;
 	}
 	
-	m_postData = new PostData(id, secret);
+	m_postData = new PostData(m_id, m_secret);
 	
-	connect(pinDialog, SIGNAL(accepted()), SLOT(sessionStart()));
+	
+	connect(m_cardreader, SIGNAL(initSucceeded()), m_mainWindow, SLOT(displayReady()));
+	connect(m_cardreader, SIGNAL(initFailed()), m_mainWindow, SLOT(displayError()));
+	connect(m_cardreader, SIGNAL(cardEject(bool)), m_mainWindow, SLOT(ejectCard(bool)));
+	connect(m_cardreader, SIGNAL(cardEjected()), m_mainWindow, SLOT(displayReady()));
+	
+	connect(m_cardreader, SIGNAL(cardInserted()), m_pinDialog, SLOT(open()));
+	
+	connect(m_pinDialog, SIGNAL(rejected()), m_cardreader, SLOT(ejectCard()));
+	connect(m_pinDialog, SIGNAL(accepted()), m_cardreader, SLOT(ejectCard()));
+	
+	connect(m_pinDialog, SIGNAL(accepted()), SLOT(sessionStart()));
+	
+	connect(this, SIGNAL(sessionStarted(double)), m_balanceDialog, SLOT(open(double)));
+	connect(m_mainWindow, SIGNAL(debugDialog()), m_balanceDialog, SLOT(open()));
+	
+	m_cardreader->init();
 }
 
 Terminal::~Terminal()
 {
-	delete m_request;
 	delete m_postData;
+	delete m_request;
+	delete m_balanceDialog;
+	delete m_pinDialog;
+	delete m_cardreader;
+	delete m_mainWindow;
 }
 
 void Terminal::request()
@@ -132,5 +150,7 @@ void Terminal::sslErrors(QList<QSslError> errors)
 	QList<QSslError>::iterator i;
 	for (i = errors.begin(); i != errors.end(); i++)
 		qDebug() << "EE SSL error = " << *i;
+#else
+	(void)errors;
 #endif
 }

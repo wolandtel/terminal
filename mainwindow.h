@@ -17,7 +17,7 @@ class MainWindow : public QMainWindow
 		
 	signals:
 #ifdef DEBUG
-		void hasCard();
+		void debugDialog();
 #endif
 		
 	public slots:

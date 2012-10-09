@@ -7,10 +7,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 		ui->setupUi(this);
 #ifdef DEBUG
-		connect(ui->CardPb, SIGNAL(clicked()), SIGNAL(hasCard()));
+		connect(ui->debugPb, SIGNAL(clicked()), SIGNAL(debugDialog()));
 		setCursor(Qt::ArrowCursor);
+#else
+		ui->debugPb->hide();
 #endif
-		ui->CardPb->hide();
 }
 
 MainWindow::~MainWindow()

@@ -28,6 +28,24 @@ Json::Json(const QString &string, bool parse)
 		setValue(string);
 }
 
+Json::Json(const char *string, bool parse)
+{
+	m_type = Null;
+	if (parse)
+		this->parse(string);
+	else
+		setValue(string);
+}
+
+Json::Json(const QByteArray &data, bool parse)
+{
+	m_type = Null;
+	if (parse)
+		this->parse(data);
+	else
+		setValue(data);
+}
+
 Json::Json(const int val)
 {
 	m_type = Null;
@@ -78,6 +96,16 @@ Json::~Json()
 void Json::parse(const QString &json)
 {
 	setValue(parse(QScriptEngine().evaluate("(" + json + ")")));
+}
+
+void Json::parse(const QByteArray &json)
+{
+	parse(QString::fromUtf8(json.constData()));
+}
+
+void Json::parse(const char *json)
+{
+	parse(QString::fromUtf8(json));
 }
 
 QString Json::toString(bool escape) const
@@ -388,6 +416,16 @@ void Json::setValue(const QString &val)
 	m_data = new QString(val);
 }
 
+void Json::setValue(const QByteArray &val)
+{
+	setValue(QString::fromUtf8(val.constData()));
+}
+
+void Json::setValue(const char *val)
+{
+	setValue(QString::fromUtf8(val));
+}
+
 void Json::setValue(const int val)
 {
 	setValue((const double)val);
@@ -557,7 +595,8 @@ Json Json::parse(const QScriptValue &sv)
 		while (i.hasNext())
 		{
 			i.next();
-			array << parse(i.value());
+			if (i.name() != "length")
+				array << parse(i.value());
 		}
 		return Json(array);
 	}
@@ -575,7 +614,7 @@ Json Json::parse(const QScriptValue &sv)
 	}
 	
 	if (sv.isString())
-		setValue(sv.toString());
+		return Json(sv.toString());
 	
 	if (sv.isNumber())
 		return Json(sv.toNumber());
@@ -585,5 +624,3 @@ Json Json::parse(const QScriptValue &sv)
 	
 	return Json();
 }
-
-

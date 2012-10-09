@@ -29,6 +29,8 @@ class Json
 		Json(const JsonObject &object);
 		Json(const JsonArray &array);
 		Json(const QString &string, bool parse = false);
+		Json(const QByteArray &data, bool parse = false);
+		Json(const char *string, bool parse = false);
 		Json(const int val);
 		Json(const double val);
 		Json(const bool val);
@@ -40,6 +42,8 @@ class Json
 		
 		inline void setValue() { setNull(); }
 		void parse(const QString &json);
+		void parse(const QByteArray &json);
+		void parse(const char *json);
 		QString toString(bool escape = true) const;
 		QString dump() const;
 		
@@ -73,6 +77,8 @@ class Json
 		void setValue(const JsonObject &val);
 		void setValue(const JsonArray &val);
 		void setValue(const QString &val);
+		void setValue(const QByteArray &val);
+		void setValue(const char *val);
 		void setValue(const int val);
 		void setValue(const double val);
 		void setValue(const bool val);
@@ -82,14 +88,14 @@ class Json
 		void setValue(const QVariantList &val);
 		void setValue(const QStringList &val);
 	
+		QString objectToString(bool escape = true) const;
+		QString arrayToString(bool escape = true) const;
+	
 	private:
 		enum JsonType m_type;
 		void *m_data;
 		
 		void setNull();
-		
-		QString objectToString(bool escape = true) const;
-		QString arrayToString(bool escape = true) const;
 		
 		Json parse(const QScriptValue &sv);
 };

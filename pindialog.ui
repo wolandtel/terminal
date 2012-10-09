@@ -13,9 +13,6 @@
   <property name="cursor">
    <cursorShape>BlankCursor</cursorShape>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
-  </property>
   <property name="modal">
    <bool>true</bool>
   </property>

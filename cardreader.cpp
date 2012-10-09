@@ -211,8 +211,8 @@ void Cardreader::handleMsg()
 
 void Cardreader::handleResponse(bool positive)
 {
-	unsigned char cmd = *m_rdata.mid(1, 1).data();
-	unsigned char param = *m_rdata.mid(2, 1).data();
+	unsigned char cmd = *m_rdata.mid(1, 1).constData();
+	unsigned char param = *m_rdata.mid(2, 1).constData();
 	int errcode = 0;
 	ByteArray st1 = ByteArray(1, 0xFF);
 	ByteArray st0 = ByteArray(1, 0xFF);

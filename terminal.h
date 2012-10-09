@@ -3,9 +3,12 @@
 
 #include <QObject>
 #include <QtNetwork/QtNetwork>
+#include "mainwindow.h"
 #include "cardreader.h"
 #include "pindialog.h"
+#include "balancedialog.h"
 #include "postdata.h"
+#include "jconfig.h"
 
 #define RA_POSTDATA QNetworkRequest::User
 
@@ -20,13 +23,7 @@ class Terminal : public QObject
 			OtherError
 		};
 		
-		Terminal(Cardreader *cardreader,
-					PinDialog *pinDialog,
-					const QString &id,
-					const QString &secret,
-					const QString &url,
-					const QString &CApath,
-					QObject *parent = 0);
+		Terminal(const JConfig &conf, QObject *parent = 0);
 		~Terminal();
 		
 	signals:
@@ -38,8 +35,10 @@ class Terminal : public QObject
 	public slots:
 		
 	private:
+		MainWindow *m_mainWindow;
 		Cardreader *m_cardreader;
 		PinDialog *m_pinDialog;
+		BalanceDialog *m_balanceDialog;
 		QString m_id, m_secret;
 		QNetworkRequest *m_request;
 		QNetworkAccessManager m_https;

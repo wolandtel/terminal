@@ -87,7 +87,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="CardPb">
+         <widget class="QPushButton" name="debugPb">
           <property name="minimumSize">
            <size>
             <width>400</width>
@@ -111,7 +111,7 @@
            <enum>Qt::NoFocus</enum>
           </property>
           <property name="text">
-           <string>Вставлена карточка</string>
+           <string>Тест</string>
           </property>
          </widget>
         </item>
