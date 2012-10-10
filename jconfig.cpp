@@ -2,12 +2,17 @@
 
 JConfig::JConfig() {}
 
-JConfig::JConfig(const QString &string, const bool content)
+JConfig::JConfig(const QString &source, enum SourceType type)
 {
-	if (content)
-		parse(string);
-	else
-		load(string);
+	switch (type)
+	{
+		case SourceString:
+			parse(source);
+			break;
+		case SourceFile:
+			load(source);
+			break;
+	}
 }
 
 JConfig::JConfig(QIODevice *device)
@@ -42,5 +47,5 @@ void JConfig::save(const QString &filename)
 
 void JConfig::save(QIODevice *device)
 {
-	device->write(toString().toUtf8());
+	device->write(dump().toUtf8());
 }

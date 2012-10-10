@@ -19,31 +19,46 @@ Json::Json(const JsonArray &array)
 	setValue(array);
 }
 
-Json::Json(const QString &string, bool parse)
+Json::Json(const QString &string, enum InputFormat format)
 {
 	m_type = Null;
-	if (parse)
-		this->parse(string);
-	else
-		setValue(string);
+	switch (format)
+	{
+		case InputPlain:
+			parse(string);
+			break;
+		case InputEncoded:
+			setValue(string);
+			break;
+	}
 }
 
-Json::Json(const char *string, bool parse)
+Json::Json(const char *string, enum InputFormat format)
 {
 	m_type = Null;
-	if (parse)
-		this->parse(string);
-	else
-		setValue(string);
+	switch (format)
+	{
+		case InputPlain:
+			parse(string);
+			break;
+		case InputEncoded:
+			setValue(string);
+			break;
+	}
 }
 
-Json::Json(const QByteArray &data, bool parse)
+Json::Json(const QByteArray &data, enum InputFormat format)
 {
 	m_type = Null;
-	if (parse)
-		this->parse(data);
-	else
-		setValue(data);
+	switch (format)
+	{
+		case InputPlain:
+			parse(data);
+			break;
+		case InputEncoded:
+			setValue(data);
+			break;
+	}
 }
 
 Json::Json(const int val)
@@ -108,36 +123,19 @@ void Json::parse(const char *json)
 	parse(QString::fromUtf8(json));
 }
 
-QString Json::toString(bool escape) const
+QString Json::encode(enum EncodeMode mode) const
 {
 	switch (m_type)
 	{
 		case Object:
-			return objectToString(escape);
+			return encodeObject(mode);
 		case Array:
-			return arrayToString(escape);
+			return encodeArray(mode);
 		case String:
-		{
-			QString string = *((QString *)m_data);
-			if (escape)
-				string = "\"" + this->escape(string) + "\"";
-			return string;
-		}
-		case Number:
-			return QString::number(*((double *)m_data));
-		case Bool:
-			if (*((bool *)m_data))
-				return "true";
-			else
-				return "false";
+			return "\"" + escape(*((QString *)m_data), mode) + "\"";
 		default:
-			return "null";
+			return toString();
 	}
-}
-
-QString Json::dump() const
-{
-	return toString(false);
 }
 
 const JsonObject &Json::toObject() const
@@ -181,6 +179,28 @@ JsonArray &Json::toArray()
 		return *((JsonArray *)m_data);
 	
 	return err = JsonArray();
+}
+
+QString Json::toString() const
+{
+	switch (m_type)
+	{
+		case Object:
+			return encodeObject(EncodeDump);
+		case Array:
+			return encodeArray(EncodeDump);
+		case String:
+			return *((QString *)m_data);
+		case Number:
+			return QString::number(*((double *)m_data));
+		case Bool:
+			if (*((bool *)m_data))
+				return "true";
+			else
+				return "false";
+		default:
+			return "null";
+	}
 }
 
 double Json::toNumber() const
@@ -315,15 +335,18 @@ Json &Json::operator=(const Json &val)
 	return *this;
 }
 
-QString Json::escape(const QString &str)
+QString Json::escape(const QString &str, enum EncodeMode mode)
 {
 	QString s(str);
-	s.replace(QRegExp("([\\\\\"/])"), "\\\\1")
+	s.replace(QRegExp(QString("([\\\\\"") + (mode == EncodeDump ? "" : "/") + "])"), "\\\\1")
 		.replace("\n", "\\n")
 		.replace("\r", "\\r")
 		.replace("\t", "\\t")
 		.replace("\b", "\\b")
 		.replace("\f", "\\f");
+	
+	if (mode == EncodeDump)
+		return s;
 	
 	int i = 0;
 	while (i < s.length())
@@ -462,7 +485,7 @@ void Json::setValue(const Json &val)
 			setValue(val.toArray());
 			break;
 		case String:
-			setValue(val.toString(false));
+			setValue(val.toString());
 			break;
 		case Number:
 			setValue(val.toNumber());
@@ -535,7 +558,7 @@ void Json::setValue(const QStringList &val)
 	setValue(ja);
 }
 
-QString Json::objectToString(bool escape) const
+QString Json::encodeObject(enum EncodeMode mode) const
 {
 	QString json;
 	JsonObject &object = *((JsonObject *)m_data);
@@ -548,19 +571,32 @@ QString Json::objectToString(bool escape) const
 		else
 			json += ",";
 		
-		QString key = (escape ? "\"" + this->escape(i.key()) + "\"" : i.key());
-		json += key + ":";
-		json += i.value().toString(escape);
+		QString key = escape(i.key(), mode);
+		switch (mode)
+		{
+			case EncodeStandard:
+				json += "\"" + key + "\":";
+				break;
+			case EncodeDump:
+				json += " " + key + " : ";
+				break;
+			default:
+				json += key;
+		}
+		json += i.value().encode(mode);
 	}
 	
 	if (json.isNull())
 		json = "{";
+	else if (mode == EncodeDump)
+		json += " ";
+	
 	json += "}";
 	
 	return json;
 }
 
-QString Json::arrayToString(bool escape) const
+QString Json::encodeArray(enum EncodeMode mode) const
 {
 	QString json;
 	JsonArray &array = *((JsonArray *)m_data);
@@ -573,11 +609,14 @@ QString Json::arrayToString(bool escape) const
 		else
 			json += ",";
 		
-		json += ((Json)*i).toString(escape);
+		json += (mode == EncodeDump ? " " : "") + ((Json)*i).encode(mode);
 	}
 	
 	if (json.isNull())
 		json = "[";
+	else if (mode == EncodeDump)
+		json += " ";
+	
 	json += "]";
 	
 	return json;

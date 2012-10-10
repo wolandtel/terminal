@@ -71,6 +71,6 @@ void PostData::clear()
 
 QByteArray PostData::content()
 {
-	return "request=" + QUrl::toPercentEncoding(toString());
+	return "request=" + QUrl::toPercentEncoding(encode());
 }
 

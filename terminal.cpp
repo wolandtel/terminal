@@ -53,7 +53,10 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	connect(m_pinDialog, SIGNAL(accepted()), SLOT(sessionStart()));
 	
 	connect(this, SIGNAL(sessionStarted(double)), m_balanceDialog, SLOT(open(double)));
+	
+#ifdef DEBUG
 	connect(m_mainWindow, SIGNAL(debugDialog()), m_balanceDialog, SLOT(open()));
+#endif
 	
 	m_cardreader->init();
 }
@@ -91,7 +94,7 @@ void Terminal::readReply()
 	QByteArray data = reply->readAll();
 	const PostData postData = reply->request().attribute(RA_POSTDATA).value<PostData>();
 #ifdef DEBUG
-	qDebug() << " i RR : " << reply->request().attribute(RA_POSTDATA);
+	qDebug() << " i RR : " << postData.dump();
 #endif
 	const QString &action = postData["action"]["type"].toString();
 	const QString &modifier = postData["action"]["modifier"].toString();
@@ -109,7 +112,7 @@ void Terminal::readReply()
 		return;
 	}
 	
-	Json response = Json(data, true); // FIX: обработать ошибку
+	Json response = Json(data, Json::InputEncoded); // FIX: обработать ошибку
 #ifdef DEBUG
 	qDebug() << "NN << " << response.dump();
 #endif

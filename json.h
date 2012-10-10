@@ -15,7 +15,7 @@ typedef QList<Json> JsonArray;
 class Json
 {
 	public:
-		enum JsonType
+		enum Type
 		{
 			Null,
 			Object,
@@ -25,12 +25,24 @@ class Json
 			Bool
 		};
 		
+		enum InputFormat
+		{
+			InputPlain,
+			InputEncoded
+		};
+		
+		enum EncodeMode
+		{
+			EncodeStandard,
+			EncodeDump
+		};
+		
 		explicit Json();
 		Json(const JsonObject &object);
 		Json(const JsonArray &array);
-		Json(const QString &string, bool parse = false);
-		Json(const QByteArray &data, bool parse = false);
-		Json(const char *string, bool parse = false);
+		Json(const QString &string, enum InputFormat format = InputPlain);
+		Json(const QByteArray &data, enum InputFormat format = InputPlain);
+		Json(const char *string, enum InputFormat format = InputPlain);
 		Json(const int val);
 		Json(const double val);
 		Json(const bool val);
@@ -44,10 +56,10 @@ class Json
 		void parse(const QString &json);
 		void parse(const QByteArray &json);
 		void parse(const char *json);
-		QString toString(bool escape = true) const;
-		QString dump() const;
+		QString encode(enum EncodeMode mode = EncodeStandard) const;
+		inline QString dump() const { return encode(EncodeDump); }
 		
-		inline enum JsonType type() const { return m_type; }
+		inline enum Type type() const { return m_type; }
 		
 		inline bool isNull() const { return m_type == Null; }
 		inline bool isObject() const { return m_type == Object; }
@@ -58,6 +70,7 @@ class Json
 		
 		const JsonObject &toObject() const;
 		const JsonArray &toArray() const;
+		QString toString() const;
 		double toNumber() const;
 		bool toBool() const;
 		int toInt() const;
@@ -70,7 +83,7 @@ class Json
 		Json &operator[](const JsonIndex &idx);
 		Json &operator=(const Json &val);
 		
-		static QString escape(const QString &str);
+		static QString escape(const QString &str, enum EncodeMode mode = EncodeDump);
 		static QString unescape(const QString &str);
 	
 	protected:
@@ -87,12 +100,12 @@ class Json
 		void setValue(const QVariantMap &val);
 		void setValue(const QVariantList &val);
 		void setValue(const QStringList &val);
-	
-		QString objectToString(bool escape = true) const;
-		QString arrayToString(bool escape = true) const;
+		
+		QString encodeObject(enum EncodeMode mode) const;
+		QString encodeArray(enum EncodeMode mode) const;
 	
 	private:
-		enum JsonType m_type;
+		enum Type m_type;
 		void *m_data;
 		
 		void setNull();

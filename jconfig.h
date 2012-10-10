@@ -6,8 +6,14 @@
 class JConfig : public Json
 {
 	public:
+		enum SourceType
+		{
+			SourceString,
+			SourceFile
+		};
+		
 		JConfig();
-		JConfig(const QString &string, const bool content = false);
+		JConfig(const QString &source, enum SourceType type = SourceFile);
 		JConfig(QIODevice *device);
 		
 		bool load(const QString &filename);
