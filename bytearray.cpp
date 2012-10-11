@@ -16,7 +16,7 @@ QByteArray ByteArray::fromShortSwapped(unsigned short num)
 	return QByteArray((const char *)&swp, 2);
 }
 
-unsigned short ByteArray::crcCcitt()
+unsigned short ByteArray::crcCcitt() const
 {
 	unsigned char *p = (unsigned char *)data();
 	unsigned short n = size();
@@ -32,17 +32,17 @@ unsigned short ByteArray::crcCcitt()
 	return crc;
 }
 
-QByteArray ByteArray::crcCcittBa()
+QByteArray ByteArray::crcCcittBa() const
 {
 	return fromShortSwapped(crcCcitt());
 }
 
-unsigned short ByteArray::toShort()
+unsigned short ByteArray::toShort() const
 {
 	return toHex().toShort(0, 16);
 }
 
-unsigned short ByteArray::crcCcittAux(unsigned short crc, unsigned short ch)
+unsigned short ByteArray::crcCcittAux(unsigned short crc, unsigned short ch) const
 {
 	unsigned short i;
 	ch <<= 8;

@@ -17,7 +17,10 @@ Cardreader::Cardreader(const QString &tty, QObject *parent) :
 	settings.StopBits = STOP_1;
 	settings.DataBits = DATA_8;
 	
-	m_tty = new QextSerialPort(tty, settings);
+	nextMode(ReadResponse);
+	
+	m_tty = new QextSerialPort(tty, settings, QextSerialPort::EventDriven);
+	connect(m_tty, SIGNAL(readyRead()), this, SLOT(read()));
 }
 
 Cardreader::~Cardreader()
@@ -48,7 +51,7 @@ void Cardreader::timerEvent(QTimerEvent *event)
 
 void Cardreader::init()
 {
-	if (!m_tty->open(QIODevice::ReadWrite | QIODevice::Text))
+	if (!m_tty->open(QIODevice::ReadWrite | QIODevice::Unbuffered))
 	{
 		emit initFailed();
 		return;
@@ -60,42 +63,52 @@ void Cardreader::init()
 void Cardreader::initContinue()
 {
 	m_tty->flush();
-	connect(m_tty, SIGNAL(readyRead()), this, SLOT(read()));
 	sendCmd(CMD_INIT, "@801"); // Инициализация
+}
+
+bool Cardreader::read(ByteArray &buffer)
+{
+	int size = m_rcvbuf.size();
+	if (size < m_waitbytes)
+	{
+		if ((size > 0) && !m_rtimer)
+			m_rtimer = startTimer(TM_READCHAR);
+		
+		return false;
+	}
+	
+	if (m_waitbytes > 0)
+	{
+		buffer = m_rcvbuf.left(m_waitbytes);
+		m_rcvbuf.remove(0, m_waitbytes);
+	}
+	
+	m_waitbytes = 0;
+	
+	return true;
+}
+
+void Cardreader::skip(int bytes)
+{
+	m_rcvbuf.remove(0, bytes);
 }
 
 void Cardreader::read()
 {
-///*DEBUG*/	qDebug() << "Have data";
-	while ((m_reading != R_NONE) && (m_tty->bytesAvailable() > 0))
-	{
-		int remains = m_waitbytes - m_rcvbuf.size();
-		if (remains <= 0)
-		{
-			m_tty->flush();
-			return;
-		}
-		
-		QByteArray data = m_tty->read(remains);
-		stopTimer(&m_rtimer, data.size() > 0);
-		m_rcvbuf.append(data);
-		
-		if (m_rcvbuf.size() < m_waitbytes)
-		{
-			if (!m_rtimer)
-				m_rtimer = startTimer(TM_READCHAR);
-			return;
-		}
-		
-		stopTimer(&m_rtimer);
-		
+///*DEBUG*/	debug("Have data");
+	QByteArray data = m_tty->readAll();
+	if (data.size() == 0)
+		return;
+	
+	stopTimer(&m_rtimer);
+	
+	m_rcvbuf.append(data);
+	
 #ifdef DEBUG
-		qDebug() << "<< " << m_rcvbuf.toHex();
+	qDebug() << "<< " << m_rcvbuf.toHex();
 #endif
-		
-		handleMsg();
-		m_rcvbuf.clear();
-	}
+	
+	handleData();
 }
 
 void Cardreader::sendCmd(const ByteArray &cmd, const ByteArray &data, Command *replied)
@@ -128,9 +141,6 @@ void Cardreader::writeCmd(ByteArray cmd)
 	if (!m_curCmd)
 		return;
 	
-	m_waitbytes = m_curCmd->waitBytes();
-	m_reading = R_RESP;
-	
 #ifdef DEBUG
 	qDebug() << " i>> cmd = " << ByteArray(1, m_curCmd->code()).toHex()
 					 << "; param = " << ByteArray(1, m_curCmd->param()).toHex();
@@ -139,26 +149,48 @@ void Cardreader::writeCmd(ByteArray cmd)
 	
 	m_tty->write(cmd);
 	
-	if (!m_rtimer && m_waitbytes && !m_curCmd->atype(ATYPE_NONE))
-		m_rtimer = startTimer(TM_READCHAR);
-	
 	handleCurCmd(ATYPE_NONE);
 }
 
-void Cardreader::handleMsg()
+void Cardreader::handleData()
+{
+	ByteArray block;
+	while (read(block))
+		handleMsg(block);
+}
+
+void Cardreader::nextMode(enum ReadMode mode, int bytes)
+{
+	switch (m_reading = mode)
+	{
+		case ReadResponse:
+			m_waitbytes = 1;
+			break;
+		case ReadLength:
+		case ReadCrc:
+			m_waitbytes = 2;
+			break;
+		case ReadData:
+			m_waitbytes = bytes;
+			break;
+		default:;
+	}
+}
+
+void Cardreader::handleMsg(const ByteArray &block)
 {
 	switch (m_reading)
 	{
-		case R_NONE:
-			break;
-		case R_RESP:
+		case ReadNone:
+			return;
+		case ReadResponse:
 		{
-			switch ((unsigned char)m_rcvbuf[0])
+			enum ReadMode mode = ReadResponse;
+			switch ((unsigned char)block[0])
 			{
 				case RESP_STX:
-					m_rheader = m_rcvbuf;
-					m_waitbytes = 2;
-					m_reading = R_LEN;
+					m_rheader = block;
+					mode = ReadLength;
 					break;
 				case RESP_ACK:
 					switch (m_curCmd->code())
@@ -170,7 +202,6 @@ void Cardreader::handleMsg()
 								emit initSucceeded();
 							}
 					}
-					
 					handleCurCmd(ATYPE_ACK);
 					break;
 				case RESP_DLE:
@@ -178,34 +209,34 @@ void Cardreader::handleMsg()
 						m_curCmd->send();
 					break;
 				case RESP_NAK:
-					handleError(ERR_NAK);
+					handleError(ErrorNak);
 					break;
+				default:
+					skip();
 			}
+			nextMode(mode);
 			break;
 		}
-		case R_LEN:
-			m_rheader.append(m_rcvbuf);
-			m_waitbytes = m_rcvbuf.toShort();
-			m_reading = R_DATA;
+		case ReadLength:
+			m_rheader.append(block);
+			nextMode(ReadData, block.toShort());
 			break;
-		case R_DATA:
-			m_rdata = m_rcvbuf;
-			m_waitbytes = 2;
-			m_reading = R_CRC;
+		case ReadData:
+			m_rdata = block;
+			nextMode(ReadCrc);
 			break;
-		case R_CRC:
-			m_waitbytes = 1;
-			if (((ByteArray)(m_rheader + m_rdata)).crcCcittBa() != m_rcvbuf)
+		case ReadCrc:
+			if (((ByteArray)(m_rheader + m_rdata)).crcCcittBa() != block)
 			{
 				sendCmd(RESP_NAK, m_curCmd);
-				handleError(ERR_CRC);
+				handleError(ErrorCrc);
 			}
 			else
 			{
 				sendCmd(RESP_ACK, m_curCmd);
-				m_reading = R_RESP;
 				handleResponse(m_rdata[0] == 'P');
 			}
+			nextMode(ReadResponse);
 			break;
 	}
 }
@@ -266,16 +297,16 @@ void Cardreader::handleResponse(bool positive)
 		handleCurCmd(ATYPE_ALL);
 }
 
-void Cardreader::handleError(Cardreader::errcode errcode)
+void Cardreader::handleError(enum Error error)
 {
 #ifdef DEBUG
-	qDebug() << " ! errcode: " << errcode;
+	qDebug() << " ! errcode: " << error;
 #endif
 	
-	switch (errcode)
+	switch (error)
 	{
-		case ERR_NAK:
-		case ERR_CRC:
+		case ErrorNak:
+		case ErrorCrc:
 			break;
 	}
 }
@@ -309,14 +340,13 @@ void Cardreader::stopTimer(int *timer, bool condition)
 void Cardreader::reset()
 {
 	ByteArray rst = ByteArray(RESP_DLE).append(RESP_EOT);
-	m_tty->flush();
+	flush();
 	
 #ifdef DEBUG
 	qDebug() << ">> " << rst.toHex();
 #endif
 	
-	m_reading = R_RESP;
-	m_waitbytes = 2;
+	nextMode(ReadResponse);
 	m_tty->write(rst);
 }
 

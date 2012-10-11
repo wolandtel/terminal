@@ -42,19 +42,19 @@ class Cardreader : public QObject
 			bool initialized;
 		} m_state;
 		
-		enum
+		enum ReadMode
 		{
-			R_NONE,
-			R_RESP,
-			R_LEN,
-			R_DATA,
-			R_CRC
+			ReadNone,
+			ReadResponse,
+			ReadLength,
+			ReadData,
+			ReadCrc
 		} m_reading;
 		
-		enum errcode
+		enum Error
 		{
-			ERR_NAK,
-			ERR_CRC
+			ErrorNak,
+			ErrorCrc
 		};
 		
 		QextSerialPort *m_tty;
@@ -63,11 +63,16 @@ class Cardreader : public QObject
 		Command *m_lastCmd, *m_curCmd;
 		QString m_cardnum;
 		
+		bool read(ByteArray &buffer);
+		void skip(int bytes = 1);
+		inline void flush() { m_tty->flush(); m_rcvbuf.clear(); }
 		void sendCmd(const ByteArray &cmd, const ByteArray &data, Command *replied = NULL);
 		void sendCmd(const ByteArray &data, Command *replied = NULL);
-		void handleMsg();
+		void handleData();
+		void nextMode(enum ReadMode mode, int bytes = 0);
+		void handleMsg(const ByteArray &block);
 		void handleResponse(bool positive = true);
-		void handleError(enum errcode errcode);
+		void handleError(enum Error error);
 		void handleCurCmd(int atype);
 		void stopTimer(int *timer, bool condition = true);
 		void reset();

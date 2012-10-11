@@ -16,12 +16,12 @@ class ByteArray : public QByteArray
 		ByteArray(int, char);
 		ByteArray(int);
 		static QByteArray fromShortSwapped(unsigned short);
-		unsigned short crcCcitt();
-		QByteArray crcCcittBa();
-		unsigned short toShort();
+		unsigned short crcCcitt() const;
+		QByteArray crcCcittBa() const;
+		unsigned short toShort() const;
 
 	private:
-		unsigned short crcCcittAux(unsigned short, unsigned short);
+		unsigned short crcCcittAux(unsigned short, unsigned short) const;
 };
 
 #endif // BYTEARRAY_H
