@@ -1,6 +1,7 @@
 #include <QDebug>
 #include <QTimer>
 #include "cardreader.h"
+#include "debug.h"
 
 Cardreader::Cardreader(const QString &tty, QObject *parent) :
 	QObject(parent)

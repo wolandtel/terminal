@@ -1,4 +1,5 @@
 #include "jconfig.h"
+#include "debug.h"
 
 JConfig::JConfig() {}
 

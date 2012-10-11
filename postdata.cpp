@@ -57,7 +57,7 @@ void PostData::clearAction()
 	
 	self["action"]["type"].setValue();
 	self["action"]["modifier"].setValue();
-	self["param"].setValue();
+	self["param"] = JsonObject();
 }
 
 void PostData::clear()

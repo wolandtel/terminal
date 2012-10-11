@@ -1,5 +1,6 @@
 #include "terminal.h"
 #include "json.h"
+#include "debug.h"
 
 Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	QObject(parent)
@@ -54,6 +55,8 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	
 	connect(this, SIGNAL(sessionStarted(double)), m_balanceDialog, SLOT(open(double)));
 	
+	connect(m_balanceDialog, SIGNAL(rejected()), SLOT(sessionStop()));
+	
 #ifdef DEBUG
 	connect(m_mainWindow, SIGNAL(debugDialog()), m_balanceDialog, SLOT(open()));
 #endif
@@ -85,6 +88,15 @@ void Terminal::sessionStart()
 {
 	m_postData->setClient(m_cardreader->cardnum(), m_pinDialog->pin());
 	m_postData->setAction("session", "start");
+	request();
+}
+
+void Terminal::sessionStop()
+{
+	m_postData->setAction("session", "stop");
+	m_postData->setParam("id", m_session);
+	m_postData->setParam("balance", m_balance);
+	debug(m_postData->dump());
 	request();
 }
 
@@ -130,8 +142,8 @@ void Terminal::readReply()
 	{
 		if (modifier == "start")
 		{
-			m_session = response["result"]["id"].toString();
-			m_balance = response["result"]["balance"].toNumber();
+			m_session = response["response"]["session"]["id"].toString();
+			m_balance = response["response"]["session"]["balance"].toNumber();
 			emit sessionStarted(m_balance);
 		}
 		else if (modifier == "stop")

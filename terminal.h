@@ -51,6 +51,7 @@ class Terminal : public QObject
 		
 	private slots:
 		void sessionStart();
+		void sessionStop();
 		void readReply();
 		void networkError(QNetworkReply::NetworkError error);
 		void sslErrors(QList<QSslError> errors);

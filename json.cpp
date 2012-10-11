@@ -1,6 +1,7 @@
 #include "json.h"
 #include "bytearray.h"
 #include "math.h"
+#include "debug.h"
 
 Json::Json()
 {
@@ -25,10 +26,10 @@ Json::Json(const QString &string, enum InputFormat format)
 	switch (format)
 	{
 		case InputPlain:
-			parse(string);
+			setValue(string);
 			break;
 		case InputEncoded:
-			setValue(string);
+			parse(string);
 			break;
 	}
 }
@@ -39,10 +40,10 @@ Json::Json(const char *string, enum InputFormat format)
 	switch (format)
 	{
 		case InputPlain:
-			parse(string);
+			setValue(string);
 			break;
 		case InputEncoded:
-			setValue(string);
+			parse(string);
 			break;
 	}
 }
@@ -53,10 +54,10 @@ Json::Json(const QByteArray &data, enum InputFormat format)
 	switch (format)
 	{
 		case InputPlain:
-			parse(data);
+			setValue(data);
 			break;
 		case InputEncoded:
-			setValue(data);
+			parse(data);
 			break;
 	}
 }

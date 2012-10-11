@@ -1,12 +1,16 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#define DBG_CONFIG "/home/fox/proj/terminal/terminal.conf"
+#include <QtGlobal>
+#include <QDateTime>
 
+#define DBG_CONFIG "/home/fox/proj/terminal/terminal.conf"
 /*
 #define DBG_ ""
-#define DBG_ ""
-#define DBG_ ""
 */
+
+#define dbgBase() QDateTime::currentDateTime().toString("[yyyy-MM-dd hh-mm-ss.zzz] ") + QString(__FILE__) + " (" + QString::number(__LINE__) + ")"
+#define dbg() qDebug() << dbgBase()
+#define debug(str) qDebug() << dbgBase() + ": " + str;
 
 #endif // DEBUG_H
