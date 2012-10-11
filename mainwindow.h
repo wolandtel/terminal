@@ -23,6 +23,7 @@ class MainWindow : public QMainWindow
 	public slots:
 		void displayReady();
 		void displayError();
+		void displayWait();
 		void ejectCard(bool err);
 	
 	private:

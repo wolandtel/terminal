@@ -81,10 +81,17 @@ void PinDialog::on_kp9Pb_clicked()
 void PinDialog::open()
 {
 	ui->pinLe->clear();
+	setEnabled(true);
 	showFullScreen();
 }
 
 void PinDialog::on_pinLe_textChanged(const QString &arg1)
 {
 	ui->OkPb->setEnabled(arg1.size() == ui->pinLe->maxLength());
+}
+
+void PinDialog::on_OkPb_clicked()
+{
+	setEnabled(false);
+	emit gotPin();
 }

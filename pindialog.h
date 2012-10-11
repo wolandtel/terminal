@@ -19,6 +19,9 @@ class PinDialog : public QDialog
 		
 	public slots:
 		void open();
+	
+	signals:
+		void gotPin();
 		
 	private slots:
 		void on_kpBsPb_clicked();
@@ -34,6 +37,8 @@ class PinDialog : public QDialog
 		void on_kp9Pb_clicked();
 		
 		void on_pinLe_textChanged(const QString &arg1);
+		
+		void on_OkPb_clicked();
 		
 	private:
 		Ui::PinDialog *ui;

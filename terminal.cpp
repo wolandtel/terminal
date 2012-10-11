@@ -45,17 +45,18 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	connect(m_cardreader, SIGNAL(initFailed()), m_mainWindow, SLOT(displayError()));
 	connect(m_cardreader, SIGNAL(cardEject(bool)), m_mainWindow, SLOT(ejectCard(bool)));
 	connect(m_cardreader, SIGNAL(cardEjected()), m_mainWindow, SLOT(displayReady()));
-	
 	connect(m_cardreader, SIGNAL(cardInserted()), m_pinDialog, SLOT(open()));
 	
 	connect(m_pinDialog, SIGNAL(rejected()), m_cardreader, SLOT(ejectCard()));
-	connect(m_pinDialog, SIGNAL(accepted()), m_cardreader, SLOT(ejectCard()));
+	connect(m_pinDialog, SIGNAL(gotPin()), SLOT(sessionStart()));
 	
-	connect(m_pinDialog, SIGNAL(accepted()), SLOT(sessionStart()));
-	
+	connect(this, SIGNAL(sessionStarted(double)), m_pinDialog, SLOT(accept()));
 	connect(this, SIGNAL(sessionStarted(double)), m_balanceDialog, SLOT(open(double)));
+	connect(this, SIGNAL(sessionStopped()), m_cardreader, SLOT(ejectCard()));
+	connect(this, SIGNAL(sessionStartFailed(NetworkError)), m_pinDialog, SLOT(open()));
 	
 	connect(m_balanceDialog, SIGNAL(rejected()), SLOT(sessionStop()));
+	connect(m_balanceDialog, SIGNAL(rejected()), m_mainWindow, SLOT(displayWait()));
 	
 #ifdef DEBUG
 	connect(m_mainWindow, SIGNAL(debugDialog()), m_balanceDialog, SLOT(open()));
@@ -132,8 +133,10 @@ void Terminal::readReply()
 	int code = response["code"].toInt();
 	if (code != 0)
 	{
-		switch (code)
+		if (action == "sesion")
 		{
+			if (modifier == "start")
+				emit sessionStartFailed(OtherError);
 		}
 		return;
 	}

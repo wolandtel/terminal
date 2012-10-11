@@ -29,6 +29,11 @@ void MainWindow::displayError()
 	ui->stateLb->setText(QString::fromUtf8("Ошибка инициализации устройства"));
 }
 
+void MainWindow::displayWait()
+{
+	ui->stateLb->setText(QString::fromUtf8("Подождите…"));
+}
+
 void MainWindow::ejectCard(bool err)
 {
 	QString text = "";
