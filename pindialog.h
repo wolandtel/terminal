@@ -40,6 +40,8 @@ class PinDialog : public QDialog
 		
 		void on_OkPb_clicked();
 		
+		void refresh();
+		
 	private:
 		Ui::PinDialog *ui;
 };

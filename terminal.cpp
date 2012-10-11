@@ -53,7 +53,7 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	connect(this, SIGNAL(sessionStarted(double)), m_pinDialog, SLOT(accept()));
 	connect(this, SIGNAL(sessionStarted(double)), m_balanceDialog, SLOT(open(double)));
 	connect(this, SIGNAL(sessionStopped()), m_cardreader, SLOT(ejectCard()));
-	connect(this, SIGNAL(sessionStartFailed(NetworkError)), m_pinDialog, SLOT(open()));
+	connect(this, SIGNAL(sessionStartFailed(NetworkError)), m_pinDialog, SLOT(refresh()));
 	
 	connect(m_balanceDialog, SIGNAL(rejected()), SLOT(sessionStop()));
 	connect(m_balanceDialog, SIGNAL(rejected()), m_mainWindow, SLOT(displayWait()));
@@ -133,7 +133,7 @@ void Terminal::readReply()
 	int code = response["code"].toInt();
 	if (code != 0)
 	{
-		if (action == "sesion")
+		if (action == "session")
 		{
 			if (modifier == "start")
 				emit sessionStartFailed(OtherError);

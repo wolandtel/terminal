@@ -1,5 +1,6 @@
 #include "pindialog.h"
 #include "ui_pindialog.h"
+#include "debug.h"
 
 PinDialog::PinDialog(QWidget *parent) :
 	QDialog(parent),
@@ -80,9 +81,14 @@ void PinDialog::on_kp9Pb_clicked()
 
 void PinDialog::open()
 {
+	refresh();
+	showFullScreen();
+}
+
+void PinDialog::refresh()
+{
 	ui->pinLe->clear();
 	setEnabled(true);
-	showFullScreen();
 }
 
 void PinDialog::on_pinLe_textChanged(const QString &arg1)

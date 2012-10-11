@@ -30,5 +30,9 @@ void BalanceDialog::on_ejectPb_clicked()
 void BalanceDialog::open(double balance)
 {
 	ui->balanceLb->setText(QString::number(balance) + " " + m_currency);
+	if (balance <= 0)
+		ui->ejectPb->setEnabled(false);
+	else
+		ui->ejectPb->setEnabled(true);
 	showFullScreen();
 }
