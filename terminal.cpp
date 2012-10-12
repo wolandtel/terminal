@@ -10,7 +10,9 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	
 	m_cardreader = new Cardreader(conf["cardreader"]["device"].toString());
 	m_pinDialog	= new PinDialog(m_mainWindow);
-	m_balanceDialog = new BalanceDialog(m_mainWindow);
+	QString currency = conf["global"]["currency"].toString();
+	m_balanceDialog = new BalanceDialog(currency, m_mainWindow);
+	m_paymentDialog = new PaymentDialog(currency, m_mainWindow);
 	
 	m_id = conf["terminal"]["id"].toString();
 	m_secret = conf["terminal"]["secret"].toString();
@@ -40,7 +42,6 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	
 	m_postData = new PostData(m_id, m_secret);
 	
-	
 	connect(m_cardreader, SIGNAL(initSucceeded()), m_mainWindow, SLOT(displayReady()));
 	connect(m_cardreader, SIGNAL(initFailed()), m_mainWindow, SLOT(displayError()));
 	connect(m_cardreader, SIGNAL(cardEject(bool)), m_mainWindow, SLOT(ejectCard(bool)));
@@ -57,9 +58,12 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	
 	connect(m_balanceDialog, SIGNAL(rejected()), SLOT(sessionStop()));
 	connect(m_balanceDialog, SIGNAL(rejected()), m_mainWindow, SLOT(displayWait()));
+	connect(m_balanceDialog, SIGNAL(payment()), m_paymentDialog, SLOT(open()));
+	
+	connect(m_paymentDialog, SIGNAL(credit(int)), SLOT(balance(int)));
 	
 #ifdef DEBUG
-	connect(m_mainWindow, SIGNAL(debugDialog()), m_balanceDialog, SLOT(open()));
+	connect(m_mainWindow, SIGNAL(debugDialog()), m_paymentDialog, SLOT(open()));
 #endif
 	
 	m_cardreader->init();
@@ -85,6 +89,18 @@ void Terminal::request()
 	connect(reply, SIGNAL(sslErrors(QList<QSslError>)), SLOT(sslErrors(QList<QSslError>)));
 }
 
+void Terminal::operation(int opcode, QString value, int subcode, int errcode)
+{
+	m_postData->setAction("operation");
+	m_postData->setParam("session_id", m_session);
+	m_postData->setParam("opcode_id", opcode);
+	if (subcode > 0)
+		m_postData->setParam("subcode", subcode);
+	m_postData->setParam("errcode_id", errcode);
+	m_postData->setParam("value", value);
+	request();
+}
+
 void Terminal::sessionStart()
 {
 	m_postData->setClient(m_cardreader->cardnum(), m_pinDialog->pin());
@@ -97,7 +113,6 @@ void Terminal::sessionStop()
 	m_postData->setAction("session", "stop");
 	m_postData->setParam("id", m_session);
 	m_postData->setParam("balance", m_balance);
-	debug(m_postData->dump());
 	request();
 }
 
@@ -171,4 +186,20 @@ void Terminal::sslErrors(QList<QSslError> errors)
 #else
 	(void)errors;
 #endif
+}
+
+void Terminal::balance(int amount)
+{
+	if (amount == 0)
+		return;
+	
+	if (m_balance + amount < 0)
+	{
+		operation(1, QString::number(amount), 2, 0); // FIX: set error code
+		return;
+	}
+	
+	m_balance += amount;
+	m_balanceDialog->setBalance(m_balance);
+	operation(1, QString::number(amount), (amount > 0 ? 1 : 2));
 }

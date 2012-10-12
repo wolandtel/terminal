@@ -1,13 +1,15 @@
 #include "balancedialog.h"
 #include "ui_balancedialog.h"
 
-BalanceDialog::BalanceDialog(QWidget *parent) :
+BalanceDialog::BalanceDialog(const QString &currency, QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::BalanceDialog)
 {
 	ui->setupUi(this);
 	
-	m_currency = QString::fromUtf8("руб.");
+	m_currency = currency;
+	connect(ui->paymentPb, SIGNAL(clicked()), SIGNAL(payment()));
+	connect(ui->ejectPb, SIGNAL(clicked()), SIGNAL(eject()));
 }
 
 BalanceDialog::~BalanceDialog()
@@ -15,24 +17,17 @@ BalanceDialog::~BalanceDialog()
 	delete ui;
 }
 
-void BalanceDialog::on_paymentPb_clicked()
-{
-	emit payment();
-	accept();
-}
-
-void BalanceDialog::on_ejectPb_clicked()
-{
-	emit eject();
-	accept();
-}
-
-void BalanceDialog::open(double balance)
+void BalanceDialog::setBalance(double balance)
 {
 	ui->balanceLb->setText(QString::number(balance) + " " + m_currency);
 	if (balance <= 0)
 		ui->ejectPb->setEnabled(false);
 	else
 		ui->ejectPb->setEnabled(true);
+}
+
+void BalanceDialog::open(double balance)
+{
+	setBalance(balance);
 	showFullScreen();
 }

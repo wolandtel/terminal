@@ -7,6 +7,7 @@
 #include "cardreader.h"
 #include "pindialog.h"
 #include "balancedialog.h"
+#include "paymentdialog.h"
 #include "postdata.h"
 #include "jconfig.h"
 
@@ -39,6 +40,7 @@ class Terminal : public QObject
 		Cardreader *m_cardreader;
 		PinDialog *m_pinDialog;
 		BalanceDialog *m_balanceDialog;
+		PaymentDialog *m_paymentDialog;
 		QString m_id, m_secret;
 		QNetworkRequest *m_request;
 		QNetworkAccessManager m_https;
@@ -48,6 +50,7 @@ class Terminal : public QObject
 		double m_balance;
 		
 		void request();
+		void operation(int opcode, QString value, int subcode = 0, int errcode = 0);
 		
 	private slots:
 		void sessionStart();
@@ -55,6 +58,7 @@ class Terminal : public QObject
 		void readReply();
 		void networkError(QNetworkReply::NetworkError error);
 		void sslErrors(QList<QSslError> errors);
+		void balance(int amount);
 };
 
 #endif // TERMINAL_H

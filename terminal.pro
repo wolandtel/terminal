@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     json.cpp \
     postdata.cpp \
     balancedialog.cpp \
-    jconfig.cpp
+    jconfig.cpp \
+    paymentdialog.cpp
 
 HEADERS  += mainwindow.h \
     pindialog.h \
@@ -38,10 +39,12 @@ HEADERS  += mainwindow.h \
     json.h \
     postdata.h \
     balancedialog.h \
-    jconfig.h
+    jconfig.h \
+    paymentdialog.h
 
 FORMS    += mainwindow.ui \
     pindialog.ui \
-    balancedialog.ui
+    balancedialog.ui \
+    paymentdialog.ui
 
 OTHER_FILES +=
