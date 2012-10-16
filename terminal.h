@@ -8,10 +8,11 @@
 #include "pindialog.h"
 #include "balancedialog.h"
 #include "paymentdialog.h"
+#include "ejectdialog.h"
 #include "postdata.h"
 #include "jconfig.h"
 
-#define RA_POSTDATA QNetworkRequest::User
+#define TERM_RA_POSTDATA QNetworkRequest::User
 
 class Terminal : public QObject
 {
@@ -41,6 +42,7 @@ class Terminal : public QObject
 		PinDialog *m_pinDialog;
 		BalanceDialog *m_balanceDialog;
 		PaymentDialog *m_paymentDialog;
+		EjectDialog *m_ejectDialog;
 		QString m_id, m_secret;
 		QNetworkRequest *m_request;
 		QNetworkAccessManager m_https;

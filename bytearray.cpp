@@ -22,7 +22,7 @@ unsigned short ByteArray::crcCcitt() const
 	unsigned short n = size();
 	unsigned char ch;
 	unsigned short i;
-	unsigned short crc = INIT;
+	unsigned short crc = BA_CRC_INIT;
 
 	for (i = 0; i < n; i++)
 	{
@@ -49,7 +49,7 @@ unsigned short ByteArray::crcCcittAux(unsigned short crc, unsigned short ch) con
 	for (i = 8; i > 0; i--)
 	{
 		if ((ch ^ crc ) & 0x8000)
-			crc = (crc << 1) ^ POLINOMIAL;
+			crc = (crc << 1) ^ BA_CRC_POLINOMIAL;
 		else
 			crc <<= 1;
 		ch <<= 1;

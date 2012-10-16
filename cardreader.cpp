@@ -57,7 +57,7 @@ void Cardreader::init()
 		return;
 	}
 	
-	QTimer::singleShot(TM_OPEN, this, SLOT(initContinue()));
+	QTimer::singleShot(CR_TM_OPEN, this, SLOT(initContinue()));
 }
 
 void Cardreader::initContinue()
@@ -72,7 +72,7 @@ bool Cardreader::read(ByteArray &buffer)
 	if (size < m_waitbytes)
 	{
 		if ((size > 0) && !m_rtimer)
-			m_rtimer = startTimer(TM_READCHAR);
+			m_rtimer = startTimer(CR_TM_READCHAR);
 		
 		return false;
 	}
@@ -124,7 +124,7 @@ void Cardreader::sendCmd(const ByteArray &cmd, const ByteArray &data, Command *r
 		replied->setNext(ncmd);
 	}
 	else
-		ncmd->send(TM_WCMD);
+		ncmd->send(CR_TM_WCMD);
 	
 	if (replied == m_lastCmd)
 		m_lastCmd = ncmd;
@@ -149,7 +149,7 @@ void Cardreader::writeCmd(ByteArray cmd)
 	
 	m_tty->write(cmd);
 	
-	handleCurCmd(ATYPE_NONE);
+	handleCurCmd(CMD_ATYPE_NONE);
 }
 
 void Cardreader::handleData()
@@ -188,11 +188,11 @@ void Cardreader::handleMsg(const ByteArray &block)
 			enum ReadMode mode = ReadResponse;
 			switch ((unsigned char)block[0])
 			{
-				case RESP_STX:
+				case CMD_RESP_STX:
 					m_rheader = block;
 					mode = ReadLength;
 					break;
-				case RESP_ACK:
+				case CMD_RESP_ACK:
 					switch (m_curCmd->code())
 					{
 						case CMD_CARD:
@@ -202,13 +202,13 @@ void Cardreader::handleMsg(const ByteArray &block)
 								emit initSucceeded();
 							}
 					}
-					handleCurCmd(ATYPE_ACK);
+					handleCurCmd(CMD_ATYPE_ACK);
 					break;
-				case RESP_DLE:
+				case CMD_RESP_DLE:
 					if (m_curCmd)
 						m_curCmd->send();
 					break;
-				case RESP_NAK:
+				case CMD_RESP_NAK:
 					handleError(ErrorNak);
 					break;
 				default:
@@ -228,12 +228,12 @@ void Cardreader::handleMsg(const ByteArray &block)
 		case ReadCrc:
 			if (((ByteArray)(m_rheader + m_rdata)).crcCcittBa() != block)
 			{
-				sendCmd(RESP_NAK, m_curCmd);
+				sendCmd(CMD_RESP_NAK, m_curCmd);
 				handleError(ErrorCrc);
 			}
 			else
 			{
-				sendCmd(RESP_ACK, m_curCmd);
+				sendCmd(CMD_RESP_ACK, m_curCmd);
 				handleResponse(m_rdata[0] == 'P');
 			}
 			nextMode(ReadResponse);
@@ -281,7 +281,7 @@ void Cardreader::handleResponse(bool positive)
 			{
 				emit cardInserted();
 				sendCmd(CMD_LED, "20");
-				m_cardnum = m_rdata.mid(5, CARDNUM_LENGTH);
+				m_cardnum = m_rdata.mid(5, CR_CARDNUM_LENGTH);
 			}
 			else
 			{
@@ -292,9 +292,9 @@ void Cardreader::handleResponse(bool positive)
 	}
 	
 	if (positive)
-		handleCurCmd(ATYPE_FULL);
+		handleCurCmd(CMD_ATYPE_FULL);
 	else
-		handleCurCmd(ATYPE_ALL);
+		handleCurCmd(CMD_ATYPE_ALL);
 }
 
 void Cardreader::handleError(enum Error error)
@@ -325,7 +325,7 @@ void Cardreader::handleCurCmd(int atype)
 		m_curCmd = next;
 	
 	if (m_curCmd)
-		m_curCmd->send(TM_WCMD);
+		m_curCmd->send(CR_TM_WCMD);
 }
 
 void Cardreader::stopTimer(int *timer, bool condition)
@@ -339,7 +339,7 @@ void Cardreader::stopTimer(int *timer, bool condition)
 
 void Cardreader::reset()
 {
-	ByteArray rst = ByteArray(RESP_DLE).append(RESP_EOT);
+	ByteArray rst = ByteArray(CMD_RESP_DLE).append(CMD_RESP_EOT);
 	flush();
 	
 #ifdef DEBUG
@@ -366,7 +366,7 @@ void Cardreader::handleCard(unsigned char param, int errcode)
 					break;
 				case 9: // таймаут
 				default:
-					sendCmd(CMD_CARD, ByteArray("1").append(ByteArray(TM_WAITCARD)));
+					sendCmd(CMD_CARD, ByteArray("1").append(ByteArray(CR_TM_WAITCARD)));
 			}
 			break;
 		case 0x32:
@@ -378,19 +378,19 @@ void Cardreader::handleCard(unsigned char param, int errcode)
 					break;
 				case 9: // таймаут
 				default:
-					sendCmd(CMD_CARD, ByteArray("2").append(ByteArray(TM_EJECTCARD)));
+					sendCmd(CMD_CARD, ByteArray("2").append(ByteArray(CR_TM_EJECTCARD)));
 			}
 			break;
 	}
 	
-	handleCurCmd(ATYPE_ACK);
+	handleCurCmd(CMD_ATYPE_ACK);
 }
 
 void Cardreader::ready()
 {
 	sendCmd(CMD_LED, "24");
 	sendCmd(CMD_SHUTTER, "0");
-	sendCmd(CMD_CARD, ByteArray("1").append(ByteArray(TM_WAITCARD)));
+	sendCmd(CMD_CARD, ByteArray("1").append(ByteArray(CR_TM_WAITCARD)));
 }
 
 void Cardreader::ejectCard(bool err)
@@ -403,5 +403,5 @@ void Cardreader::ejectCard(bool err)
 		sendCmd(CMD_LED, "30");
 	
 	sendCmd(CMD_SHUTTER, "0");
-	sendCmd(CMD_CARD, ByteArray("2").append(ByteArray(TM_EJECTCARD)));
+	sendCmd(CMD_CARD, ByteArray("2").append(ByteArray(CR_TM_EJECTCARD)));
 }

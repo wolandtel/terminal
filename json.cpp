@@ -111,6 +111,7 @@ Json::~Json()
 
 void Json::parse(const QString &json)
 {
+	m_error = ErrorNone;
 	setValue(parse(QScriptEngine().evaluate("(" + json + ")")));
 }
 
@@ -126,6 +127,7 @@ void Json::parse(const char *json)
 
 QString Json::encode(enum EncodeMode mode) const
 {
+	m_error = ErrorNone;
 	switch (m_type)
 	{
 		case Object:
@@ -139,32 +141,53 @@ QString Json::encode(enum EncodeMode mode) const
 	}
 }
 
-const JsonObject &Json::toObject() const
+const JsonObject &Json::toObject(const Json &def) const
 {
 	static JsonObject err;
 	
 	if (isObject())
+	{
+		m_error = ErrorNone;
 		return *((JsonObject *)m_data);
+	}
+	
+	m_error = ErrorTypeMismatch;
+	if (def.isObject())
+		return def.toObject();
 	
 	return err = JsonObject();
 }
 
-JsonObject &Json::toObject()
+JsonObject &Json::toObject(const Json &def)
 {
 	static JsonObject err;
 	
 	if (isObject())
+	{
+		m_error = ErrorNone;
 		return *((JsonObject *)m_data);
+	}
+	
+	m_error = ErrorTypeMismatch;
+	if (def.isObject())
+		return err = def.toObject();
 	
 	return err = JsonObject();
 }
 
-const JsonArray &Json::toArray() const
+const JsonArray &Json::toArray(const Json &def) const
 {
 	static JsonArray err;
 	
 	if (isArray())
+	{
+		m_error = ErrorNone;
 		return *((JsonArray *)m_data);
+	}
+	
+	m_error = ErrorTypeMismatch;
+	if (def.isArray())
+		return def.toArray();
 	
 	err = JsonArray();
 	err << *this;
@@ -172,18 +195,35 @@ const JsonArray &Json::toArray() const
 	return err;
 }
 
-JsonArray &Json::toArray()
+JsonArray &Json::toArray(const Json &def)
 {
 	static JsonArray err;
 	
 	if (isArray())
+	{
+		m_error = ErrorNone;
 		return *((JsonArray *)m_data);
+	}
+	
+	m_error = ErrorTypeMismatch;
+	if (def.isArray())
+		return err = def.toArray();
 	
 	return err = JsonArray();
 }
 
-QString Json::toString() const
+QString Json::toString(const Json &def) const
 {
+	if (isString())
+	{
+		m_error = ErrorNone;
+		return *((QString *)m_data);
+	}
+	
+	m_error = ErrorTypeMismatch;
+	if (def.isString())
+		return def.toString();
+	
 	switch (m_type)
 	{
 		case Object:
@@ -191,7 +231,6 @@ QString Json::toString() const
 		case Array:
 			return encodeArray(EncodeDump);
 		case String:
-			return *((QString *)m_data);
 		case Number:
 			return QString::number(*((double *)m_data));
 		case Bool:
@@ -204,8 +243,18 @@ QString Json::toString() const
 	}
 }
 
-double Json::toNumber() const
+double Json::toNumber(const Json &def) const
 {
+	if (isNumber())
+	{
+		m_error = ErrorNone;
+		return *((double *)m_data);
+	}
+	
+	m_error = ErrorTypeMismatch;
+	if (def.isNumber())
+		return def.toNumber();
+	
 	switch (m_type)
 	{
 		case Object:
@@ -214,8 +263,6 @@ double Json::toNumber() const
 			return ((JsonArray *)m_data)->size();
 		case String:
 			return ((QString *)m_data)->toDouble();
-		case Number:
-			return *((double *)m_data);
 		case Bool:
 			if (*((bool *)m_data))
 				return 1;
@@ -226,8 +273,18 @@ double Json::toNumber() const
 	}
 }
 
-bool Json::toBool() const
+bool Json::toBool(const Json &def) const
 {
+	if (isBool())
+	{
+		m_error = ErrorNone;
+		return *((bool *)m_data);
+	}
+	
+	m_error = ErrorTypeMismatch;
+	if (def.isBool())
+		return def.toBool();
+	
 	switch (m_type)
 	{
 		case Object:
@@ -241,20 +298,19 @@ bool Json::toBool() const
 		}
 		case Number:
 			return *((double *)m_data) != 0;
-		case Bool:
-			return *((bool *)m_data);
 		default:
 			return false;
 	}
 }
 
-int Json::toInt() const
+int Json::toInt(const Json &def) const
 {
-	return (int)round(toNumber());
+	return (int)round(toNumber(def));
 }
 
 bool Json::contains(const JsonIndex &idx) const
 {
+	m_error = ErrorNone;
 	if (idx.isInt())
 	{
 		if (isArray())
@@ -273,6 +329,7 @@ const Json &Json::operator[](const JsonIndex &idx) const
 {
 	static Json json;
 	
+	m_error = ErrorNone;
 	if (idx.isInt())
 	{
 		if (isArray())
@@ -300,6 +357,7 @@ Json &Json::operator[](const JsonIndex &idx)
 {
 	Json err;
 	
+	m_error = ErrorNone;
 	if (idx.isInt())
 	{
 		if (isArray())
@@ -339,6 +397,7 @@ Json &Json::operator=(const Json &val)
 QString Json::escape(const QString &str, enum EncodeMode mode)
 {
 	QString s(str);
+	
 	s.replace(QRegExp(QString("([\\\\\"") + (mode == EncodeDump ? "" : "/") + "])"), "\\\\1")
 		.replace("\n", "\\n")
 		.replace("\r", "\\r")
@@ -371,6 +430,7 @@ QString Json::unescape(const QString &str)
 	QString s(str);
 	QRegExp uc("(^|[^\\\\])\\\\u[0-9a-fA-F]{4}");
 	int pos = s.indexOf(uc);
+	
 	while (pos > -1)
 	{
 		if (s[pos] != '\\')
@@ -393,6 +453,7 @@ QString Json::unescape(const QString &str)
 
 void Json::setNull()
 {
+	m_error = ErrorNone;
 	if (isNull())
 		return;
 	
@@ -565,6 +626,7 @@ QString Json::encodeObject(enum EncodeMode mode) const
 	JsonObject &object = *((JsonObject *)m_data);
 	JsonObject::const_iterator i;
 	
+	m_error = ErrorNone;
 	for (i = object.constBegin(); i != object.constEnd(); i++)
 	{
 		if (json.isNull())
@@ -603,6 +665,7 @@ QString Json::encodeArray(enum EncodeMode mode) const
 	JsonArray &array = *((JsonArray *)m_data);
 	JsonArray::const_iterator i;
 	
+	m_error = ErrorNone;
 	for (i = array.constBegin(); i != array.constEnd(); i++)
 	{
 		if (json.isNull())

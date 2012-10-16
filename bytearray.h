@@ -4,8 +4,8 @@
 #include <QByteArray>
 
 // Макросы для генерации CRC16-CCITT
-#define INIT 0x0000 /* Initial value */
-#define POLINOMIAL 0x1021 /* Polynomial X16+X12+X5+1 */
+#define BA_CRC_INIT 0x0000 /* Initial value */
+#define BA_CRC_POLINOMIAL 0x1021 /* Polynomial X16+X12+X5+1 */
 
 class ByteArray : public QByteArray
 {

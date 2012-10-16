@@ -7,13 +7,13 @@
 #include "command.h"
 
 // Таймауты (мс)
-#define TM_WCMD 10
-#define TM_READCHAR 250
-#define TM_OPEN 800
-#define TM_WAITCARD "00060000" // 8 символов
-#define TM_EJECTCARD "00060000" // 8 символов
+#define CR_TM_WCMD 10
+#define CR_TM_READCHAR 250
+#define CR_TM_OPEN 800
+#define CR_TM_WAITCARD "00060000" // 8 символов
+#define CR_TM_EJECTCARD "00060000" // 8 символов
 
-#define CARDNUM_LENGTH 16
+#define CR_CARDNUM_LENGTH 16
 
 class Cardreader : public QObject
 {
@@ -22,7 +22,7 @@ class Cardreader : public QObject
 		Cardreader(const QString &tty, QObject *parent = 0);
 		~Cardreader();
 		void init();
-		QString cardnum() { return m_cardnum; };
+		inline QString cardnum() { return m_cardnum; }
 		
 	signals:
 		void initFailed();

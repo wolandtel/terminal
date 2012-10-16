@@ -21,21 +21,21 @@
 #define CMD_TIMER 0x57
 
 // Ответы кардридера
-#define RESP_STX 0xF2
-#define RESP_ACK 0x06
-#define RESP_DLE 0x10
-#define RESP_EOT 0x04
-#define RESP_NAK 0x15
+#define CMD_RESP_STX 0xF2
+#define CMD_RESP_ACK 0x06
+#define CMD_RESP_DLE 0x10
+#define CMD_RESP_EOT 0x04
+#define CMD_RESP_NAK 0x15
 
 // 
-#define ATYPE_NONE 0x2
-#define ATYPE_ACK 0x4
-#define ATYPE_FULL 0x8
-#define ATYPE_DLE 0x10
-#define ATYPE_ALL 0xFF
+#define CMD_ATYPE_NONE 0x2
+#define CMD_ATYPE_ACK 0x4
+#define CMD_ATYPE_FULL 0x8
+#define CMD_ATYPE_DLE 0x10
+#define CMD_ATYPE_ALL 0xFF
 
 // Смещения
-#define CMD_CODE 4
+#define CMD_OFFSET_CODE 4
 
 class Command : public QObject
 {

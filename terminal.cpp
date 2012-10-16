@@ -9,10 +9,11 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	m_mainWindow->showFullScreen();
 	
 	m_cardreader = new Cardreader(conf["cardreader"]["device"].toString());
-	m_pinDialog	= new PinDialog(m_mainWindow);
+	m_pinDialog	= new PinDialog(conf, m_mainWindow);
 	QString currency = conf["global"]["currency"].toString();
 	m_balanceDialog = new BalanceDialog(currency, m_mainWindow);
 	m_paymentDialog = new PaymentDialog(currency, m_mainWindow);
+	m_ejectDialog = new EjectDialog(conf, m_mainWindow);
 	
 	m_id = conf["terminal"]["id"].toString();
 	m_secret = conf["terminal"]["secret"].toString();
@@ -59,11 +60,12 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	connect(m_balanceDialog, SIGNAL(rejected()), SLOT(sessionStop()));
 	connect(m_balanceDialog, SIGNAL(rejected()), m_mainWindow, SLOT(displayWait()));
 	connect(m_balanceDialog, SIGNAL(payment()), m_paymentDialog, SLOT(open()));
+	connect(m_balanceDialog, SIGNAL(eject()), m_ejectDialog, SLOT(open()));
 	
 	connect(m_paymentDialog, SIGNAL(credit(int)), SLOT(balance(int)));
 	
 #ifdef DEBUG
-	connect(m_mainWindow, SIGNAL(debugDialog()), m_paymentDialog, SLOT(open()));
+	connect(m_mainWindow, SIGNAL(debugDialog()), m_ejectDialog, SLOT(open()));
 #endif
 	
 	m_cardreader->init();
@@ -82,7 +84,7 @@ Terminal::~Terminal()
 void Terminal::request()
 {
 	m_error = QNetworkReply::NoError;
-	m_request->setAttribute(RA_POSTDATA, qVariantFromValue(*m_postData));
+	m_request->setAttribute(TERM_RA_POSTDATA, qVariantFromValue(*m_postData));
 	QNetworkReply *reply = m_https.post(*m_request, m_postData->content());
 	connect(reply, SIGNAL(finished()), SLOT(readReply()));
 	connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(networkError(QNetworkReply::NetworkError)));
@@ -120,7 +122,7 @@ void Terminal::readReply()
 {
 	QNetworkReply *reply = (QNetworkReply *)sender();
 	QByteArray data = reply->readAll();
-	const PostData postData = reply->request().attribute(RA_POSTDATA).value<PostData>();
+	const PostData postData = reply->request().attribute(TERM_RA_POSTDATA).value<PostData>();
 #ifdef DEBUG
 	qDebug() << " i RR : " << postData.dump();
 #endif

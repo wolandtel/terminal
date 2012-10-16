@@ -2,6 +2,10 @@
 #define PINDIALOG_H
 
 #include <QDialog>
+#include "jconfig.h"
+
+#define PIN_DEF_LEN 4
+#define PIN_DEF_ECHO '*'
 
 namespace Ui {
 	class PinDialog;
@@ -12,10 +16,10 @@ class PinDialog : public QDialog
 		Q_OBJECT
 		
 	public:
-		explicit PinDialog(QWidget *parent = 0);
+		explicit PinDialog(const JConfig &conf, QWidget *parent = 0);
 		~PinDialog();
 		
-		QString pin();
+		inline QString pin() { return m_pin; }
 		
 	public slots:
 		void open();
@@ -25,25 +29,20 @@ class PinDialog : public QDialog
 		
 	private slots:
 		void on_kpBsPb_clicked();
-		void on_kp0Pb_clicked();
-		void on_kp1Pb_clicked();
-		void on_kp2Pb_clicked();
-		void on_kp3Pb_clicked();
-		void on_kp4Pb_clicked();
-		void on_kp5Pb_clicked();
-		void on_kp6Pb_clicked();
-		void on_kp7Pb_clicked();
-		void on_kp8Pb_clicked();
-		void on_kp9Pb_clicked();
+		void on_okPb_clicked();
 		
-		void on_pinLe_textChanged(const QString &arg1);
-		
-		void on_OkPb_clicked();
-		
+		void num();
 		void refresh();
+		
+		void on_kpCancelPb_clicked();
 		
 	private:
 		Ui::PinDialog *ui;
+		QString m_pin;
+		QChar m_echo;
+		int m_len;
+		
+		void pinChanged();
 };
 
 #endif // PINDIALOG_H

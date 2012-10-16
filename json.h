@@ -37,6 +37,12 @@ class Json
 			EncodeDump
 		};
 		
+		enum Error
+		{
+			ErrorNone,
+			ErrorTypeMismatch
+		};
+		
 		explicit Json();
 		Json(const JsonObject &object);
 		Json(const JsonArray &array);
@@ -60,6 +66,7 @@ class Json
 		inline QString dump() const { return encode(EncodeDump); }
 		
 		inline enum Type type() const { return m_type; }
+		inline enum Error error() const { return m_error; }
 		
 		inline bool isNull() const { return m_type == Null; }
 		inline bool isObject() const { return m_type == Object; }
@@ -68,15 +75,15 @@ class Json
 		inline bool isNumber() const { return m_type == Number; }
 		inline bool isBool() const { return m_type == Bool; }
 		
-		const JsonObject &toObject() const;
-		const JsonArray &toArray() const;
-		QString toString() const;
-		double toNumber() const;
-		bool toBool() const;
-		int toInt() const;
+		const JsonObject &toObject(const Json &def = Json()) const;
+		const JsonArray &toArray(const Json &def = Json()) const;
+		QString toString(const Json &def = Json()) const;
+		double toNumber(const Json &def = Json()) const;
+		bool toBool(const Json &def = Json()) const;
+		int toInt(const Json &def = Json()) const;
 		
-		JsonObject &toObject();
-		JsonArray &toArray();
+		JsonObject &toObject(const Json &def = Json());
+		JsonArray &toArray(const Json &def = Json());
 		
 		bool contains(const JsonIndex &idx) const;
 		const Json &operator[](const JsonIndex &idx) const;
@@ -107,6 +114,7 @@ class Json
 	private:
 		enum Type m_type;
 		void *m_data;
+		mutable enum Error m_error;
 		
 		void setNull();
 		

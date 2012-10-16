@@ -10,21 +10,21 @@ Command::Command(QObject *parent,
 	
 	switch (m_code)
 	{
-		case RESP_DLE:
-			m_atype = ATYPE_DLE;
+		case CMD_RESP_DLE:
+			m_atype = CMD_ATYPE_DLE;
 			m_waitbytes = 2;
 			break;
-		case RESP_ACK:
-		case RESP_NAK:
-			m_atype = ATYPE_NONE;
+		case CMD_RESP_ACK:
+		case CMD_RESP_NAK:
+			m_atype = CMD_ATYPE_NONE;
 			m_waitbytes = 0;
 			break;
 		case CMD_CARD:
-			m_atype = ATYPE_ACK;
+			m_atype = CMD_ATYPE_ACK;
 			m_waitbytes = 1;
 			break;
 		default:
-			m_atype = ATYPE_FULL;
+			m_atype = CMD_ATYPE_FULL;
 			m_waitbytes = 1;
 	}
 	
@@ -39,7 +39,7 @@ Command::Command(QObject *parent,
 	
 	m_param = (unsigned char)data[0];
 	
-	m_cmd += RESP_STX;
+	m_cmd += CMD_RESP_STX;
 	m_cmd += ByteArray::fromShortSwapped(data.size() + 2);
 	m_cmd += 'C';
 	m_cmd += cmd;

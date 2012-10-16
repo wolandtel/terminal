@@ -10,7 +10,7 @@ class JsonIndex
 		JsonIndex(const QString &idx);
 		JsonIndex(const char *idx);
 		
-		inline bool isInt() const { return m_int; };
+		inline bool isInt() const { return m_int; }
 		int toInt() const;
 		QString toString() const;
 		
