@@ -6,7 +6,8 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	QObject(parent)
 {
 	m_mainWindow = new MainWindow();
-	m_mainWindow->showFullScreen();
+	m_mainWindow->setWindowState(Qt::WindowFullScreen);
+	m_mainWindow->show();
 	
 	m_cardreader = new Cardreader(conf["cardreader"]["device"].toString());
 	m_pinDialog	= new PinDialog(conf, m_mainWindow);
