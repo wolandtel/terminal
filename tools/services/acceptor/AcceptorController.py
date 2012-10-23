@@ -95,7 +95,7 @@ class AcceptorController:
 		
 		print json.dumps({'code': code, 'msg': ('Exception type = %s,\n\targuments = %s' % (type(exception), str(exception.args)))})
 	
-	def _running(self, last_action):
+	def _running (self, last_action):
 		
 		timestamp = int(time.time())
 		last_action = int(last_action)
@@ -109,4 +109,4 @@ class AcceptorController:
 			self.stop()
 		
 		return self.running
-        
+	
