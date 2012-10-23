@@ -6,4 +6,5 @@ ui_*
 *.autosave
 terminal.pro.user
 /3rdparty/qextserialport-1.2beta2
+*.pyc
 
