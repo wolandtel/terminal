@@ -42,7 +42,8 @@ HEADERS  += mainwindow.h \
     balancedialog.h \
     jconfig.h \
     paymentdialog.h \
-    ejectdialog.h
+    ejectdialog.h \
+	config.h
 
 FORMS    += mainwindow.ui \
     pindialog.ui \

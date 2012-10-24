@@ -23,19 +23,23 @@ JConfig::JConfig(QIODevice *device)
 
 bool JConfig::load(const QString &filename)
 {
+	bool result = false;
 	QFile file(filename);
 	
 	if (file.exists() && file.open(QIODevice::ReadOnly))
-		return load(&file);
+	{
+		result = load(&file);
+		file.close();
+	}
 	
-	return false;
+	return result;
 }
 
 bool JConfig::load(QIODevice *device)
 {
 	parse(device->readAll());
 	
-	return !isNull();
+	return (error() == ErrorNone) && !isNull();
 }
 
 void JConfig::save(const QString &filename)

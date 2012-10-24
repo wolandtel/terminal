@@ -1,5 +1,6 @@
 #include <QApplication>
 #include "debug.h"
+#include "config.h"
 #include "jconfig.h"
 #include "terminal.h"
 
@@ -7,7 +8,9 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 	
-	JConfig conf(DBG_CONFIG);
+	JConfig conf(argc > 1 ? QString::fromUtf8(argv[1]) : DEF_CONFIG);
+	if (conf.error() != JConfig::ErrorNone)
+		return 1;
 	
 	QPalette p = a.palette();
 	p.setColor(QPalette::Window, "white");

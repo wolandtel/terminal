@@ -24,7 +24,7 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	m_request->setAttribute(QNetworkRequest::CacheSaveControlAttribute, false);
 	
 	QList<QSslCertificate> CAs;
-	QFile *CAfile = new QFile(conf["network"]["CA"].toString());
+	QFile *CAfile = new QFile(conf["network"]["CA"].toString(TERM_DEF_CA));
 	if (CAfile->exists() && CAfile->open(QIODevice::ReadOnly))
 	{
 		QSslCertificate CA(CAfile);

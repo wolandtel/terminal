@@ -12,6 +12,8 @@
 #include "postdata.h"
 #include "jconfig.h"
 
+#define TERM_DEF_CA QApplication::applicationDirPath() + "/CA.pem"
+
 #define TERM_RA_POSTDATA QNetworkRequest::User
 
 class Terminal : public QObject
