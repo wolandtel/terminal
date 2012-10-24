@@ -25,7 +25,7 @@ bool JConfig::load(const QString &filename)
 {
 	QFile file(filename);
 	
-	if (file.exists() && file.open(QIODevice::ReadOnly | QIODevice::Text))
+	if (file.exists() && file.open(QIODevice::ReadOnly))
 		return load(&file);
 	
 	return false;
@@ -41,7 +41,7 @@ bool JConfig::load(QIODevice *device)
 void JConfig::save(const QString &filename)
 {
 	QFile file(filename);
-	if (file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+	if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
 		save(&file);
 	file.close();
 }

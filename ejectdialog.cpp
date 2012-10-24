@@ -1,12 +1,13 @@
 #include "ejectdialog.h"
 #include "ui_ejectdialog.h"
+#include "config.h"
 
 EjectDialog::EjectDialog(const JConfig &conf, QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::EjectDialog)
 {
 	ui->setupUi(this);
-	ui->currencyLb->setText(conf["global"]["currency"].toString());
+	ui->currencyLb->setText(conf["global"]["currency"].toString(DEF_CURRENCY));
 	m_min = conf["eject"]["min"].toInt(EJECT_DEF_MIN);
 	m_max = conf["eject"]["max"].toInt(EJECT_DEF_MAX);
 	m_len = conf["eject"]["len"].toInt(EJECT_DEF_LEN);

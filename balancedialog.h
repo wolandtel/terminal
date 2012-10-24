@@ -2,6 +2,7 @@
 #define BALANCEDIALOG_H
 
 #include <QDialog>
+#include "config.h"
 
 namespace Ui {
 	class BalanceDialog;
@@ -12,7 +13,7 @@ class BalanceDialog : public QDialog
 		Q_OBJECT
 		
 	public:
-		explicit BalanceDialog(const QString &currency = QString::fromUtf8("руб."), QWidget *parent = 0);
+		explicit BalanceDialog(const QString &currency = DEF_CURRENCY, QWidget *parent = 0);
 		~BalanceDialog();
 		
 		void setBalance(double balance = 0);

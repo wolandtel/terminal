@@ -205,7 +205,7 @@
    <sender>closePb</sender>
    <signal>clicked()</signal>
    <receiver>PaymentDialog</receiver>
-   <slot>reject()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>303</x>
@@ -221,7 +221,7 @@
    <sender>payPb</sender>
    <signal>clicked()</signal>
    <receiver>PaymentDialog</receiver>
-   <slot>accept()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>971</x>

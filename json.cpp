@@ -109,20 +109,25 @@ Json::~Json()
 	setNull();
 }
 
-void Json::parse(const QString &json)
+void Json::parse(const QString &jString)
 {
-	m_error = ErrorNone;
-	setValue(parse(QScriptEngine().evaluate("(" + json + ")")));
+	QScriptEngine se;
+	const QScriptValue &sv = se.evaluate("(" + jString + ")");
+	
+	if (se.hasUncaughtException())
+		m_error = ErrorParsing;
+	else
+		setValue(parse(sv)); // error is set by setNull()
 }
 
-void Json::parse(const QByteArray &json)
+void Json::parse(const QByteArray &jData)
 {
-	parse(QString::fromUtf8(json.constData()));
+	parse(QString::fromUtf8(jData.constData()));
 }
 
-void Json::parse(const char *json)
+void Json::parse(const char *jString)
 {
-	parse(QString::fromUtf8(json));
+	parse(QString::fromUtf8(jString));
 }
 
 QString Json::encode(enum EncodeMode mode) const
@@ -355,7 +360,7 @@ const Json &Json::operator[](const JsonIndex &idx) const
 
 Json &Json::operator[](const JsonIndex &idx)
 {
-	Json err;
+	static Json err;
 	
 	m_error = ErrorNone;
 	if (idx.isInt())
@@ -482,21 +487,21 @@ void Json::setNull()
 
 void Json::setValue(const JsonObject &val)
 {
-	setNull();
+	setNull(); // error is set here
 	m_type = Object;
 	m_data = new JsonObject(val);
 }
 
 void Json::setValue(const JsonArray &val)
 {
-	setNull();
+	setNull(); // error is set here
 	m_type = Array;
 	m_data = new JsonArray(val);
 }
 
 void Json::setValue(const QString &val)
 {
-	setNull();
+	setNull(); // error is set here
 	m_type = String;
 	m_data = new QString(val);
 }
@@ -518,7 +523,7 @@ void Json::setValue(const int val)
 
 void Json::setValue(const double val)
 {
-	setNull();
+	setNull(); // error is set here
 	m_type = Number;
 	m_data = new double;
 	*((double *)m_data) = val;
@@ -526,7 +531,7 @@ void Json::setValue(const double val)
 
 void Json::setValue(const bool val)
 {
-	setNull();
+	setNull(); // error is set here
 	m_type = Bool;
 	m_data = new bool;
 	*((bool *)m_data) = val;
@@ -534,7 +539,6 @@ void Json::setValue(const bool val)
 
 void Json::setValue(const Json &val)
 {
-	setNull();
 	switch (val.type())
 	{
 		case Null:
@@ -556,16 +560,16 @@ void Json::setValue(const Json &val)
 			setValue(val.toBool());
 			break;
 	}
+	m_error = val.error();
 }
 
 void Json::setValue(const QVariant &val)
 {
-	setNull();
-	if (val.isNull())
-		return;
-	
+	setNull(); // error is set here
 	switch (val.type())
 	{
+		case Null:
+			return;
 		case QVariant::Map:
 			setValue(val.toMap());
 			break;
@@ -599,7 +603,7 @@ void Json::setValue(const QVariantMap &val)
 	QVariantMap::const_iterator i;
 	for (i = val.constBegin(); i != val.constEnd(); i++)
 		jo[i.key()] = Json((QVariant)i.value());
-	setValue(jo);
+	setValue(jo); // error is set here
 }
 
 void Json::setValue(const QVariantList &val)
@@ -608,7 +612,7 @@ void Json::setValue(const QVariantList &val)
 	QVariantList::const_iterator i;
 	for (i = val.constBegin(); i != val.constEnd(); i++)
 		ja << Json((QVariant)*i);
-	setValue(ja);
+	setValue(ja); // error is set here
 }
 
 void Json::setValue(const QStringList &val)
@@ -617,7 +621,7 @@ void Json::setValue(const QStringList &val)
 	QStringList::const_iterator i;
 	for (i = val.constBegin(); i != val.constEnd(); i++)
 		ja << Json((QString)*i);
-	setValue(ja);
+	setValue(ja); // error is set here
 }
 
 QString Json::encodeObject(enum EncodeMode mode) const

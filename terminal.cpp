@@ -13,7 +13,7 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	m_pinDialog	= new PinDialog(conf, m_mainWindow);
 	QString currency = conf["global"]["currency"].toString();
 	m_balanceDialog = new BalanceDialog(currency, m_mainWindow);
-	m_paymentDialog = new PaymentDialog(currency, m_mainWindow);
+	m_paymentDialog = new PaymentDialog(conf, m_mainWindow);
 	m_ejectDialog = new EjectDialog(conf, m_mainWindow);
 	
 	m_id = conf["terminal"]["id"].toString();
@@ -25,7 +25,7 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	
 	QList<QSslCertificate> CAs;
 	QFile *CAfile = new QFile(conf["network"]["CA"].toString());
-	if (CAfile->exists() && CAfile->open(QIODevice::ReadOnly | QIODevice::Text))
+	if (CAfile->exists() && CAfile->open(QIODevice::ReadOnly))
 	{
 		QSslCertificate CA(CAfile);
 		if (CA.isValid())
@@ -67,6 +67,8 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	
 #ifdef DEBUG
 	connect(m_mainWindow, SIGNAL(debugDialog()), m_ejectDialog, SLOT(open()));
+	
+	qDebug(". Let's go!");
 #endif
 	
 	m_cardreader->init();

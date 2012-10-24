@@ -3,6 +3,7 @@
 import time
 import glob
 import json
+import sys
 import os.path
 
 from common.Logger import Logger
@@ -30,7 +31,7 @@ class AcceptorController:
 	def start (self):
 		
 		if self.adapter == None:
-			print json.dumps({'code': 2})
+			self._out({'code': 2})
 			return
 		
 		sleep_time	= 1.
@@ -44,7 +45,7 @@ class AcceptorController:
 		self.logger.debug('Acceptor in use: %s' % self.running)
 		self.running = True
 		
-		print json.dumps({'code': 0, 'event': 'started'})
+		self._out({'code': 0, 'event': 'started'})
 		
 		try:
 			while self._running(last_action):
@@ -54,7 +55,7 @@ class AcceptorController:
 				if event:
 					last_action = time.time()
 					total_sum += event['value']
-					print json.dumps({'code': 0, 'event': 'received', 'amount': total_sum}) # Сообщаем сумму
+					self._out({'code': 0, 'event': 'received', 'amount': total_sum}) # Сообщаем сумму
 			
 		except KeyboardInterrupt, e:
 			pass
@@ -76,7 +77,7 @@ class AcceptorController:
 				self.error(4, e)
 				return
 		
-		print json.dumps({'code': 0, 'event': 'finished'})
+		self._out({'code': 0, 'event': 'finished'})
 		self.logger.debug('[AcceptorController::start]: receive has been stopped')
 	
 	def stop (self):
@@ -93,7 +94,7 @@ class AcceptorController:
 	
 	def error (self, code, exception):
 		
-		print json.dumps({'code': code, 'msg': ('Exception type = %s,\n\targuments = %s' % (type(exception), str(exception.args)))})
+		self._out({'code': code, 'msg': ('Exception type = %s,\n\targuments = %s' % (type(exception), str(exception.args)))})
 	
 	def _running (self, last_action):
 		
@@ -109,4 +110,9 @@ class AcceptorController:
 			self.stop()
 		
 		return self.running
+	
+	def _out (self, jObject):
+		
+		print json.dumps(jObject)
+		sys.stdout.flush()
 	

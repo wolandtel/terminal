@@ -40,7 +40,8 @@ class Json
 		enum Error
 		{
 			ErrorNone,
-			ErrorTypeMismatch
+			ErrorTypeMismatch,
+			ErrorParsing
 		};
 		
 		explicit Json();
@@ -59,9 +60,9 @@ class Json
 		~Json();
 		
 		inline void setValue() { setNull(); }
-		void parse(const QString &json);
-		void parse(const QByteArray &json);
-		void parse(const char *json);
+		void parse(const QString &jString);
+		void parse(const QByteArray &jData);
+		void parse(const char *jString);
 		QString encode(enum EncodeMode mode = EncodeStandard) const;
 		inline QString dump() const { return encode(EncodeDump); }
 		
