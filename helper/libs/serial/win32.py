@@ -11,7 +11,7 @@ from ctypes.wintypes import BYTE
 INVALID_HANDLE_VALUE = HANDLE(-1).value
 
 class _SECURITY_ATTRIBUTES(Structure):
-    pass
+	pass
 LPSECURITY_ATTRIBUTES = POINTER(_SECURITY_ATTRIBUTES)
 
 CreateEventW = _stdcall_libraries['kernel32'].CreateEventW
@@ -25,19 +25,19 @@ CreateFileW.argtypes = [LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWO
 CreateFile = CreateFileW # alias
 
 class _OVERLAPPED(Structure):
-    pass
+	pass
 OVERLAPPED = _OVERLAPPED
 
 class _COMSTAT(Structure):
-    pass
+	pass
 COMSTAT = _COMSTAT
 
 class _DCB(Structure):
-    pass
+	pass
 DCB = _DCB
 
 class _COMMTIMEOUTS(Structure):
-    pass
+	pass
 COMMTIMEOUTS = _COMMTIMEOUTS
 
 GetLastError = _stdcall_libraries['kernel32'].GetLastError
@@ -185,104 +185,104 @@ ULONG_PTR = c_ulong
 INFINITE = 0xFFFFFFFFL
 
 class N11_OVERLAPPED4DOLLAR_48E(Union):
-    pass
+	pass
 class N11_OVERLAPPED4DOLLAR_484DOLLAR_49E(Structure):
-    pass
+	pass
 N11_OVERLAPPED4DOLLAR_484DOLLAR_49E._fields_ = [
-    ('Offset', DWORD),
-    ('OffsetHigh', DWORD),
+	('Offset', DWORD),
+	('OffsetHigh', DWORD),
 ]
 
 PVOID = c_void_p
 
 N11_OVERLAPPED4DOLLAR_48E._anonymous_ = ['_0']
 N11_OVERLAPPED4DOLLAR_48E._fields_ = [
-    ('_0', N11_OVERLAPPED4DOLLAR_484DOLLAR_49E),
-    ('Pointer', PVOID),
+	('_0', N11_OVERLAPPED4DOLLAR_484DOLLAR_49E),
+	('Pointer', PVOID),
 ]
 _OVERLAPPED._anonymous_ = ['_0']
 _OVERLAPPED._fields_ = [
-    ('Internal', ULONG_PTR),
-    ('InternalHigh', ULONG_PTR),
-    ('_0', N11_OVERLAPPED4DOLLAR_48E),
-    ('hEvent', HANDLE),
+	('Internal', ULONG_PTR),
+	('InternalHigh', ULONG_PTR),
+	('_0', N11_OVERLAPPED4DOLLAR_48E),
+	('hEvent', HANDLE),
 ]
 _SECURITY_ATTRIBUTES._fields_ = [
-    ('nLength', DWORD),
-    ('lpSecurityDescriptor', LPVOID),
-    ('bInheritHandle', BOOL),
+	('nLength', DWORD),
+	('lpSecurityDescriptor', LPVOID),
+	('bInheritHandle', BOOL),
 ]
 _COMSTAT._fields_ = [
-    ('fCtsHold', DWORD, 1),
-    ('fDsrHold', DWORD, 1),
-    ('fRlsdHold', DWORD, 1),
-    ('fXoffHold', DWORD, 1),
-    ('fXoffSent', DWORD, 1),
-    ('fEof', DWORD, 1),
-    ('fTxim', DWORD, 1),
-    ('fReserved', DWORD, 25),
-    ('cbInQue', DWORD),
-    ('cbOutQue', DWORD),
+	('fCtsHold', DWORD, 1),
+	('fDsrHold', DWORD, 1),
+	('fRlsdHold', DWORD, 1),
+	('fXoffHold', DWORD, 1),
+	('fXoffSent', DWORD, 1),
+	('fEof', DWORD, 1),
+	('fTxim', DWORD, 1),
+	('fReserved', DWORD, 25),
+	('cbInQue', DWORD),
+	('cbOutQue', DWORD),
 ]
 _DCB._fields_ = [
-    ('DCBlength', DWORD),
-    ('BaudRate', DWORD),
-    ('fBinary', DWORD, 1),
-    ('fParity', DWORD, 1),
-    ('fOutxCtsFlow', DWORD, 1),
-    ('fOutxDsrFlow', DWORD, 1),
-    ('fDtrControl', DWORD, 2),
-    ('fDsrSensitivity', DWORD, 1),
-    ('fTXContinueOnXoff', DWORD, 1),
-    ('fOutX', DWORD, 1),
-    ('fInX', DWORD, 1),
-    ('fErrorChar', DWORD, 1),
-    ('fNull', DWORD, 1),
-    ('fRtsControl', DWORD, 2),
-    ('fAbortOnError', DWORD, 1),
-    ('fDummy2', DWORD, 17),
-    ('wReserved', WORD),
-    ('XonLim', WORD),
-    ('XoffLim', WORD),
-    ('ByteSize', BYTE),
-    ('Parity', BYTE),
-    ('StopBits', BYTE),
-    ('XonChar', c_char),
-    ('XoffChar', c_char),
-    ('ErrorChar', c_char),
-    ('EofChar', c_char),
-    ('EvtChar', c_char),
-    ('wReserved1', WORD),
+	('DCBlength', DWORD),
+	('BaudRate', DWORD),
+	('fBinary', DWORD, 1),
+	('fParity', DWORD, 1),
+	('fOutxCtsFlow', DWORD, 1),
+	('fOutxDsrFlow', DWORD, 1),
+	('fDtrControl', DWORD, 2),
+	('fDsrSensitivity', DWORD, 1),
+	('fTXContinueOnXoff', DWORD, 1),
+	('fOutX', DWORD, 1),
+	('fInX', DWORD, 1),
+	('fErrorChar', DWORD, 1),
+	('fNull', DWORD, 1),
+	('fRtsControl', DWORD, 2),
+	('fAbortOnError', DWORD, 1),
+	('fDummy2', DWORD, 17),
+	('wReserved', WORD),
+	('XonLim', WORD),
+	('XoffLim', WORD),
+	('ByteSize', BYTE),
+	('Parity', BYTE),
+	('StopBits', BYTE),
+	('XonChar', c_char),
+	('XoffChar', c_char),
+	('ErrorChar', c_char),
+	('EofChar', c_char),
+	('EvtChar', c_char),
+	('wReserved1', WORD),
 ]
 _COMMTIMEOUTS._fields_ = [
-    ('ReadIntervalTimeout', DWORD),
-    ('ReadTotalTimeoutMultiplier', DWORD),
-    ('ReadTotalTimeoutConstant', DWORD),
-    ('WriteTotalTimeoutMultiplier', DWORD),
-    ('WriteTotalTimeoutConstant', DWORD),
+	('ReadIntervalTimeout', DWORD),
+	('ReadTotalTimeoutMultiplier', DWORD),
+	('ReadTotalTimeoutConstant', DWORD),
+	('WriteTotalTimeoutMultiplier', DWORD),
+	('WriteTotalTimeoutConstant', DWORD),
 ]
 __all__ = ['GetLastError', 'MS_CTS_ON', 'FILE_ATTRIBUTE_NORMAL',
-           'DTR_CONTROL_ENABLE', '_COMSTAT', 'MS_RLSD_ON',
-           'GetOverlappedResult', 'SETXON', 'PURGE_TXABORT',
-           'PurgeComm', 'N11_OVERLAPPED4DOLLAR_48E', 'EV_RING',
-           'ONESTOPBIT', 'SETXOFF', 'PURGE_RXABORT', 'GetCommState',
-           'RTS_CONTROL_ENABLE', '_DCB', 'CreateEvent',
-           '_COMMTIMEOUTS', '_SECURITY_ATTRIBUTES', 'EV_DSR',
-           'EV_PERR', 'EV_RXFLAG', 'OPEN_EXISTING', 'DCB',
-           'FILE_FLAG_OVERLAPPED', 'EV_CTS', 'SetupComm',
-           'LPOVERLAPPED', 'EV_TXEMPTY', 'ClearCommBreak',
-           'LPSECURITY_ATTRIBUTES', 'SetCommBreak', 'SetCommTimeouts',
-           'COMMTIMEOUTS', 'ODDPARITY', 'EV_RLSD',
-           'GetCommModemStatus', 'EV_EVENT2', 'PURGE_TXCLEAR',
-           'EV_BREAK', 'EVENPARITY', 'LPCVOID', 'COMSTAT', 'ReadFile',
-           'PVOID', '_OVERLAPPED', 'WriteFile', 'GetCommTimeouts',
-           'ResetEvent', 'EV_RXCHAR', 'LPCOMSTAT', 'ClearCommError',
-           'ERROR_IO_PENDING', 'EscapeCommFunction', 'GENERIC_READ',
-           'RTS_CONTROL_HANDSHAKE', 'OVERLAPPED',
-           'DTR_CONTROL_HANDSHAKE', 'PURGE_RXCLEAR', 'GENERIC_WRITE',
-           'LPDCB', 'CreateEventW', 'SetCommMask', 'EV_EVENT1',
-           'SetCommState', 'LPVOID', 'CreateFileW', 'LPDWORD',
-           'EV_RX80FULL', 'TWOSTOPBITS', 'LPCOMMTIMEOUTS', 'MAXDWORD',
-           'MS_DSR_ON', 'MS_RING_ON',
-           'N11_OVERLAPPED4DOLLAR_484DOLLAR_49E', 'EV_ERR',
-           'ULONG_PTR', 'CreateFile', 'NOPARITY', 'CloseHandle']
+		   'DTR_CONTROL_ENABLE', '_COMSTAT', 'MS_RLSD_ON',
+		   'GetOverlappedResult', 'SETXON', 'PURGE_TXABORT',
+		   'PurgeComm', 'N11_OVERLAPPED4DOLLAR_48E', 'EV_RING',
+		   'ONESTOPBIT', 'SETXOFF', 'PURGE_RXABORT', 'GetCommState',
+		   'RTS_CONTROL_ENABLE', '_DCB', 'CreateEvent',
+		   '_COMMTIMEOUTS', '_SECURITY_ATTRIBUTES', 'EV_DSR',
+		   'EV_PERR', 'EV_RXFLAG', 'OPEN_EXISTING', 'DCB',
+		   'FILE_FLAG_OVERLAPPED', 'EV_CTS', 'SetupComm',
+		   'LPOVERLAPPED', 'EV_TXEMPTY', 'ClearCommBreak',
+		   'LPSECURITY_ATTRIBUTES', 'SetCommBreak', 'SetCommTimeouts',
+		   'COMMTIMEOUTS', 'ODDPARITY', 'EV_RLSD',
+		   'GetCommModemStatus', 'EV_EVENT2', 'PURGE_TXCLEAR',
+		   'EV_BREAK', 'EVENPARITY', 'LPCVOID', 'COMSTAT', 'ReadFile',
+		   'PVOID', '_OVERLAPPED', 'WriteFile', 'GetCommTimeouts',
+		   'ResetEvent', 'EV_RXCHAR', 'LPCOMSTAT', 'ClearCommError',
+		   'ERROR_IO_PENDING', 'EscapeCommFunction', 'GENERIC_READ',
+		   'RTS_CONTROL_HANDSHAKE', 'OVERLAPPED',
+		   'DTR_CONTROL_HANDSHAKE', 'PURGE_RXCLEAR', 'GENERIC_WRITE',
+		   'LPDCB', 'CreateEventW', 'SetCommMask', 'EV_EVENT1',
+		   'SetCommState', 'LPVOID', 'CreateFileW', 'LPDWORD',
+		   'EV_RX80FULL', 'TWOSTOPBITS', 'LPCOMMTIMEOUTS', 'MAXDWORD',
+		   'MS_DSR_ON', 'MS_RING_ON',
+		   'N11_OVERLAPPED4DOLLAR_484DOLLAR_49E', 'EV_ERR',
+		   'ULONG_PTR', 'CreateFile', 'NOPARITY', 'CloseHandle']

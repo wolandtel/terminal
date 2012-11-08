@@ -123,7 +123,6 @@ class Cashcode_T1500 (Thread):
 		0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
 	]
 
-	logger		= Logger.get_instance()
 	__prefix	= '[Cashcode_t1500]'
 
 	last_action = 0
@@ -136,6 +135,7 @@ class Cashcode_T1500 (Thread):
 	def __init__ (self, device, baudrate = 9600, sleep_time = .5, timeout = 0):
 		
 		self.device, self.timeout = device, timeout
+		self.logger = Logger()
 		
 		if baudrate:
 			self.baudrate = baudrate
@@ -143,7 +143,7 @@ class Cashcode_T1500 (Thread):
 		if sleep_time > 0:
 			self.sleep_time = sleep_time
 		
-		super(Cashcode_T1500, self).__init__()
+		Thread.__init__(self)
 	
 	def connect(self):
 		self.running = True
@@ -159,12 +159,12 @@ class Cashcode_T1500 (Thread):
 			self.check_status()
 			self.logger.debug("Okay. Adapter has been connected to CASHCODE SM with data %s:%s" % (self.device, self.baudrate))
 			
-		except serial.SerialException, e:
+		except serial.SerialException as e:
 			message = 'Error while connecting to bill acceptor'
 			self.logger.warning(message)
 			raise AcceptorError(message = message, code = 500)
-		except Exception, e:
-			message = 'Error while connecting to bill acceptor. Error details: %s' % str(e.args)
+		except Exception as e:
+			message = 'Error while connecting to bill acceptor. Error details: %s' % e
 			self.logger.warning(message)
 			raise AcceptorError(message = message, code = 500)
 		
@@ -207,7 +207,7 @@ class Cashcode_T1500 (Thread):
 					skip = [self.r_idling, self.r_initialize, self.r_accepting, self.r_stacking],
 					timeout = self.timeout
 				)
-			except AcceptorError, e:
+			except AcceptorError as e:
 				message = 'Error while waiting %s. Response is %s. Error is %s' % (self.re_stacked, response, str(e.args))
 				self.logger.debug(message)
 				continue

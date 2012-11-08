@@ -28,21 +28,21 @@ Cardreader::~Cardreader()
 	delete m_tty;
 }
 
-void Cardreader::timerEvent(QTimerEvent *event)
+void Cardreader::timerEvent(QTimerEvent *event) // Не используется
 {
 	int timerId = event->timerId();
 	
 	if (timerId == m_rtimer)
 	{
 #ifdef DEBUG
-		qDebug() << QString::fromUtf8(" ⌚ Read character timeout");
+		dbg << QString::fromUtf8(" ⌚ Read character timeout");
 #endif
 		reset();
 	}
 	else
 	{
 #ifdef DEBUG
-		qDebug() << QString::fromUtf8(" ⌚ Unknown timer event");
+		dbg << QString::fromUtf8(" ⌚ Unknown timer event");
 #endif
 	}
 	
@@ -105,34 +105,46 @@ void Cardreader::read()
 	m_rcvbuf.append(data);
 	
 #ifdef DEBUG
-	qDebug() << "<< " << m_rcvbuf.toHex();
+	dbg << "<< " << m_rcvbuf.toHex();
 #endif
 	
 	handleData();
 }
 
-void Cardreader::sendCmd(const ByteArray &cmd, const ByteArray &data, Command *replied)
+void Cardreader::sendCmd(const ByteArray &cmd, const ByteArray &data, Command *prev)
 {
-///*DEBUG*/	qDebug() << "cmd = " << cmd.toHex() << "; replied = " << (long int) replied << "; lastCmd = " << (long int) m_lastCmd; 
+///*DEBUG*/	dbg << "cmd = " << cmd.toHex() << "; prev = " << (long int) prev << "; lastCmd = " << (long int) m_lastCmd; 
 	Command *ncmd = new Command(this, cmd, data);
-	if (!replied)
-		replied = m_lastCmd;
+	if (!prev) // если позиция в очереди не указана, добавляем в конец (указатель на последний элементы может быть пустым)
+		prev = m_lastCmd;
 	
-	if (replied)
-	{
-		ncmd->setNext(replied->next());
-		replied->setNext(ncmd);
-	}
-	else
-		ncmd->send(CR_TM_WCMD);
-	
-	if (replied == m_lastCmd)
-		m_lastCmd = ncmd;
+	queueCmd(ncmd, prev);
 }
 
-void Cardreader::sendCmd(const ByteArray &data, Command *replied)
+void Cardreader::sendCmd(const ByteArray &data, Command *prev) // перегрузка для установки пустого значения по умолчанию для первого параметра
 {
-	sendCmd(data, ByteArray(), replied);
+	sendCmd(data, ByteArray(), prev);
+}
+
+void Cardreader::queueCmd(Command *cmd, Command *prev)
+{
+	if (prev) // ставим в очередь
+	{
+		cmd->setNext(prev->next());
+		prev->setNext(cmd);
+	}
+	else // если очередь пуста, отправляем сразу
+		cmd->send();
+	
+	if (prev == m_lastCmd) // если поставлена в конец очереди, изменяем значение указателя на последний элемент
+		m_lastCmd = cmd;
+}
+
+void Cardreader::repeatCmd(int timeout)
+{
+	Command *cmd = new Command(*m_curCmd);
+	cmd->setTimeout(timeout);
+	queueCmd(cmd, m_curCmd);
 }
 
 void Cardreader::writeCmd(ByteArray cmd)
@@ -142,14 +154,14 @@ void Cardreader::writeCmd(ByteArray cmd)
 		return;
 	
 #ifdef DEBUG
-	qDebug() << " i>> cmd = " << ByteArray(1, m_curCmd->code()).toHex()
+	dbg << " i>> cmd = " << ByteArray(1, m_curCmd->code()).toHex()
 					 << "; param = " << ByteArray(1, m_curCmd->param()).toHex();
-	qDebug() << ">> " << cmd.toHex();
+	dbg << ">> " << cmd.toHex();
 #endif
 	
 	m_tty->write(cmd);
 	
-	handleCurCmd(CMD_ATYPE_NONE);
+	handleCurCmd(CMD_ATYPE_NONE); // Сразу же отправляем следующую команду, если текущая не требует ответа (ACK, NACK)
 }
 
 void Cardreader::handleData()
@@ -202,11 +214,11 @@ void Cardreader::handleMsg(const ByteArray &block)
 								emit initSucceeded();
 							}
 					}
-					handleCurCmd(CMD_ATYPE_ACK);
+					handleCurCmd(CMD_ATYPE_ACK); // Отправляем текущую команду, если предыдущая не требует ответа, кроме ACK
 					break;
 				case CMD_RESP_DLE:
 					if (m_curCmd)
-						m_curCmd->send();
+						m_curCmd->send(); // FIX: привести к общему виду
 					break;
 				case CMD_RESP_NAK:
 					handleError(ErrorNak);
@@ -257,7 +269,7 @@ void Cardreader::handleResponse(bool positive)
 		errcode = m_rdata.mid(3, 2).toInt();
 	
 #ifdef DEBUG
-	qDebug() << " i<< cmd = " << ByteArray(1, cmd).toHex()
+	dbg << " i<< cmd = " << ByteArray(1, cmd).toHex()
 					 << "; param = " << ByteArray(1, param).toHex()
 					 << "; st0 = " << st0.toHex()
 					 << "; st1 = " << st1.toHex()
@@ -273,8 +285,8 @@ void Cardreader::handleResponse(bool positive)
 				emit initFailed();
 			break;
 		case CMD_CARD:
-			if (!errcode || ((errcode >= 7) && (errcode <= 9)))
-				handleCard(param, errcode);
+			// Обрабатываются ошибки: (!errcode || ((errcode >= 7) && (errcode <= 10)))
+			handleCard(param, errcode);
 			break;
 		case CMD_MAGTRACK:
 			if (positive)
@@ -289,18 +301,22 @@ void Cardreader::handleResponse(bool positive)
 				emit ejectCard(true);
 			}
 			break;
+		case CMD_SHUTTER:
+			if (!positive)
+				repeatCmd();
+			break;
 	}
 	
 	if (positive)
-		handleCurCmd(CMD_ATYPE_FULL);
+		handleCurCmd(CMD_ATYPE_FULL); // Отправляем текущую команду, если предыдущая требовала возврата данных
 	else
-		handleCurCmd(CMD_ATYPE_ALL);
+		handleCurCmd(CMD_ATYPE_ALL); // Отправляем текущую команду в любом случае
 }
 
 void Cardreader::handleError(enum Error error)
 {
 #ifdef DEBUG
-	qDebug() << " ! errcode: " << error;
+	dbg << " ! errcode: " << error;
 #endif
 	
 	switch (error)
@@ -325,7 +341,7 @@ void Cardreader::handleCurCmd(int atype)
 		m_curCmd = next;
 	
 	if (m_curCmd)
-		m_curCmd->send(CR_TM_WCMD);
+		m_curCmd->send();
 }
 
 void Cardreader::stopTimer(int *timer, bool condition)
@@ -340,10 +356,10 @@ void Cardreader::stopTimer(int *timer, bool condition)
 void Cardreader::reset()
 {
 	ByteArray rst = ByteArray(CMD_RESP_DLE).append(CMD_RESP_EOT);
-	flush();
+	flush(); // Сбрасываем буфер устройства, очищаем буфер объекта | FIX: очистить очередь команд
 	
 #ifdef DEBUG
-	qDebug() << ">> " << rst.toHex();
+	dbg << ">> " << rst.toHex();
 #endif
 	
 	nextMode(ReadResponse);
@@ -361,12 +377,14 @@ void Cardreader::handleCard(unsigned char param, int errcode)
 				case 0:
 					sendCmd(CMD_MAGTRACK, 0x32); // Читать вторую дорожку | FIX: проверить, закрыта ли защёлка.
 					break;
-				case 7: // карточка вставлена не до конца
+				case 7: // карта вставлена не до конца
 					ejectCard(true);
 					break;
 				case 9: // таймаут
+					repeatCmd(CMD_TM_WRITE);
+					break;
 				default:
-					sendCmd(CMD_CARD, ByteArray("1").append(ByteArray(CR_TM_WAITCARD)));
+					repeatCmd();
 			}
 			break;
 		case 0x32:
@@ -376,14 +394,15 @@ void Cardreader::handleCard(unsigned char param, int errcode)
 					emit cardEjected();
 					ready();
 					break;
+				case 7: // карта вставлена не до конца
 				case 9: // таймаут
+					repeatCmd(CMD_TM_WRITE);
+					break;
 				default:
-					sendCmd(CMD_CARD, ByteArray("2").append(ByteArray(CR_TM_EJECTCARD)));
+					repeatCmd();
 			}
 			break;
 	}
-	
-	handleCurCmd(CMD_ATYPE_ACK);
 }
 
 void Cardreader::ready()

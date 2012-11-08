@@ -25,18 +25,23 @@ class EjectDialog : public QDialog
 	
 	private:
 		Ui::EjectDialog *ui;
-		int m_min, m_max, m_len;
+		int m_min, m_max, m_len, m_balance;
 		QString m_amount;
+		QString m_helperFile;
+		QStringList m_helperParams;
+		Json m_helperCassettes;
+		QProcess *m_helper;
 		
 		void amountChanged();
 		
 	private slots:
-		void open();
+		void open(int balance);
 		void on_kpCancelPb_clicked();
 		void on_kpBsPb_clicked();
 		void num();
-		void refresh();
+		void refresh(int amount = 0);
 		void on_ejectPb_clicked();
+		void helperRead();
 };
 
 #endif // EJECTDIALOG_H

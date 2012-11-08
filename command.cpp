@@ -1,12 +1,63 @@
 #include "command.h"
+#include "debug.h"
 
-Command::Command(QObject *parent,
-								 const ByteArray &cmd,
-								 const ByteArray &data) :
+Command::Command(QObject *parent, const ByteArray &cmd, const ByteArray &data) :
 	QObject(parent)
 {
+	i_cmd = cmd;
+	i_data = data;
+	
+	init();
+}
+
+Command::Command(const Command &cmd) : 
+	QObject(cmd.parent())
+{
+	i_cmd = cmd.cmd();
+	i_data = cmd.data();
+	
+	init();
+}
+
+void Command::send(int timeout)
+{
+	if (timeout >= 0)
+		m_timeout = timeout;
+	
+/*DEBUG*/ dbg << m_timeout;
+	if (m_timeout > 0)
+		startTimer(m_timeout);
+	else
+		emit send(m_cmd);
+}
+
+void Command::setNext(Command *next)
+{
+	m_next = next;
+}
+
+void Command::setTimeout(int timeout)
+{
+	if (timeout >= 0)
+		m_timeout = timeout;
+}
+
+bool Command::atype(int atype) const
+{
+	return atype & this->m_atype;
+}
+
+void Command::timerEvent(QTimerEvent *event)
+{
+	killTimer(event->timerId());
+	emit send(m_cmd);
+}
+
+void Command::init()
+{
 	m_next = NULL;
-	m_code = (unsigned char)cmd[0];
+	m_timeout = CMD_TM_WRITE;
+	m_code = (unsigned char)i_cmd[0];
 	
 	switch (m_code)
 	{
@@ -19,56 +70,28 @@ Command::Command(QObject *parent,
 			m_atype = CMD_ATYPE_NONE;
 			m_waitbytes = 0;
 			break;
-		case CMD_CARD:
-			m_atype = CMD_ATYPE_ACK;
-			m_waitbytes = 1;
-			break;
-		default:
+		default: // CMD_CARD устанавливалось в ATYPE_ACK для исключения ожидания полного ответа в рамках таймаута чтения символа
 			m_atype = CMD_ATYPE_FULL;
 			m_waitbytes = 1;
 	}
 	
-	connect(this, SIGNAL(send(ByteArray)), parent, SLOT(writeCmd(ByteArray)));
+	connect(this, SIGNAL(send(ByteArray)), parent(), SLOT(writeCmd(ByteArray)));
 	
-	if ((cmd.size() > 1) || (data.size() == 0))
+	if ((i_cmd.size() > 1) || (i_data.size() == 0))
 	{
-		m_cmd += cmd;
+		m_cmd += i_cmd;
 		m_param = -1;
 		return;
 	}
 	
-	m_param = (unsigned char)data[0];
+	m_param = (unsigned char)i_data[0];
 	
 	m_cmd += CMD_RESP_STX;
-	m_cmd += ByteArray::fromShortSwapped(data.size() + 2);
+	m_cmd += ByteArray::fromShortSwapped(i_data.size() + 2);
 	m_cmd += 'C';
-	m_cmd += cmd;
-	m_cmd += data;
+	m_cmd += i_cmd;
+	m_cmd += i_data;
 	
 	ByteArray cs = (ByteArray)m_cmd.crcCcittBa();
 	m_cmd += cs;
-}
-
-void Command::send(int timeout)
-{
-	if (timeout > 0)
-		startTimer(timeout);
-	else
-		emit send(m_cmd);
-}
-
-void Command::setNext(Command *next)
-{
-	m_next = next;
-}
-
-bool Command::atype(int atype)
-{
-	return atype & this->m_atype;
-}
-
-void Command::timerEvent(QTimerEvent *event)
-{
-	killTimer(event->timerId());
-	emit send(m_cmd);
 }

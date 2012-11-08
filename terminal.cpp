@@ -61,14 +61,16 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	connect(m_balanceDialog, SIGNAL(rejected()), SLOT(sessionStop()));
 	connect(m_balanceDialog, SIGNAL(rejected()), m_mainWindow, SLOT(displayWait()));
 	connect(m_balanceDialog, SIGNAL(payment()), m_paymentDialog, SLOT(open()));
-	connect(m_balanceDialog, SIGNAL(eject()), m_ejectDialog, SLOT(open()));
+	connect(m_balanceDialog, SIGNAL(eject(int)), m_ejectDialog, SLOT(open(int)));
 	
 	connect(m_paymentDialog, SIGNAL(credit(int)), SLOT(balance(int)));
+
+	connect(m_ejectDialog, SIGNAL(eject(int)), SLOT(balance(int)));
 	
 #ifdef DEBUG
 	connect(m_mainWindow, SIGNAL(debugDialog()), m_ejectDialog, SLOT(open()));
 	
-	qDebug(". Let's go!");
+	dbg << ". Let's go!";
 #endif
 	
 	m_cardreader->init();
@@ -127,7 +129,7 @@ void Terminal::readReply()
 	QByteArray data = reply->readAll();
 	const PostData postData = reply->request().attribute(TERM_RA_POSTDATA).value<PostData>();
 #ifdef DEBUG
-	qDebug() << " i RR : " << postData.dump();
+	dbg << " i RR : " << postData.dump();
 #endif
 	const QString &action = postData["action"]["type"].toString();
 	const QString &modifier = postData["action"]["modifier"].toString();
@@ -147,7 +149,7 @@ void Terminal::readReply()
 	
 	Json response = Json(data, Json::InputEncoded); // FIX: обработать ошибку
 #ifdef DEBUG
-	qDebug() << "NN << " << response.dump();
+	dbg << "NN << " << response.dump();
 #endif
 	
 	int code = response["code"].toInt();
@@ -177,7 +179,7 @@ void Terminal::readReply()
 void Terminal::networkError(QNetworkReply::NetworkError error)
 {
 #ifdef DEBUG
-	qDebug() << "EE Network error = " << error;
+	dbg << "EE Network error = " << error;
 #endif
 	m_error = error;
 }
@@ -187,7 +189,7 @@ void Terminal::sslErrors(QList<QSslError> errors)
 #ifdef DEBUG
 	QList<QSslError>::iterator i;
 	for (i = errors.begin(); i != errors.end(); i++)
-		qDebug() << "EE SSL error = " << *i;
+		dbg << "EE SSL error = " << *i;
 #else
 	(void)errors;
 #endif

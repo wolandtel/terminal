@@ -86,7 +86,7 @@ void PaymentDialog::helperRead()
 		data.parse(input);
 		
 #ifdef DEBUG
-		qDebug() << "\t[ " << input << " ]: " << data.dump() << "(" + QString::number(data.error()) + ")";
+		dbg << "\t[ " << input << " ]: " << data.dump() << "(" + QString::number(data.error()) + ")";
 #endif
 		
 		if (data.error() != Json::ErrorNone)

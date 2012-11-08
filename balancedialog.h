@@ -20,14 +20,17 @@ class BalanceDialog : public QDialog
 	
 	signals:
 		void payment();
-		void eject();
+		void eject(int balance);
 		
 	private slots:
+		void on_ejectPb_clicked();
+		
 		void open(double balance = 0);
 		
 	private:
 		Ui::BalanceDialog *ui;
 		QString m_currency;
+		double m_balance;
 };
 
 #endif // BALANCEDIALOG_H

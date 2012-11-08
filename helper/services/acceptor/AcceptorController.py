@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import time
-import glob
-import json
-import sys
-import os.path
 
-from common.Logger import Logger
+from common.Service import Service
 
 from services.acceptor.models.cashcode_t1500 import Cashcode_T1500
 
-class AcceptorController:
+class AcceptorController (Service):
 	
 	running = False
 	adapter = None
@@ -18,20 +14,20 @@ class AcceptorController:
 	
 	def __init__ (self, device, baudrate, timeout = 0):
 		
-		self.timeout = timeout
+		Service.__init__(self)
 		
+		self.timeout = timeout
 		try:
-			self.logger = Logger.get_instance()
 			self.adapter = Cashcode_T1500(device, baudrate, .1)
 			self.adapter.connect()
-		except Exception, e:
-			self.error(1, e)
+		except Exception as e:
+			self.io.error(1, e)
 			self.adapter = None
 	
 	def start (self):
 		
 		if self.adapter == None:
-			self._out({'code': 2})
+			self.io.out({'code': 2})
 			return
 		
 		sleep_time	= 1.
@@ -45,7 +41,7 @@ class AcceptorController:
 		self.logger.debug('Acceptor in use: %s' % self.running)
 		self.running = True
 		
-		self._out({'code': 0, 'event': 'started'})
+		self.io.out({'code': 0, 'event': 'started'})
 		
 		try:
 			while self._running(last_action):
@@ -55,13 +51,13 @@ class AcceptorController:
 				if event:
 					last_action = time.time()
 					total_sum += event['value']
-					self._out({'code': 0, 'event': 'received', 'amount': total_sum}) # Сообщаем сумму
+					self.io.out({'code': 0, 'event': 'received', 'amount': total_sum}) # Сообщаем сумму
 			
-		except KeyboardInterrupt, e:
+		except KeyboardInterrupt:
 			pass
 		
-		except Exception, e:
-			self.error(3, e)
+		except Exception as e:
+			self.io.error(3, e)
 		
 		finally:
 			try:
@@ -73,11 +69,11 @@ class AcceptorController:
 					self.adapter.pop_message()
 				
 				del self.adapter
-			except Exception, e:
-				self.error(4, e)
+			except Exception as e:
+				self.io.error(4, e)
 				return
 		
-		self._out({'code': 0, 'event': 'finished'})
+		self.io.out({'code': 0, 'event': 'finished'})
 		self.logger.debug('[AcceptorController::start]: receive has been stopped')
 	
 	def stop (self):
@@ -89,12 +85,8 @@ class AcceptorController:
 		if self.adapter != None:
 			try:
 				self.adapter.disconnect()
-			except Exception, e:
-				self.error(5, e)
-	
-	def error (self, code, exception):
-		
-		self._out({'code': code, 'msg': ('Exception type = %s,\n\targuments = %s' % (type(exception), str(exception.args)))})
+			except Exception as e:
+				self.io.error(5, e)
 	
 	def _running (self, last_action):
 		
@@ -111,8 +103,4 @@ class AcceptorController:
 		
 		return self.running
 	
-	def _out (self, jObject):
-		
-		print json.dumps(jObject)
-		sys.stdout.flush()
-	
+

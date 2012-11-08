@@ -7,7 +7,6 @@
 #include "command.h"
 
 // Таймауты (мс)
-#define CR_TM_WCMD 10
 #define CR_TM_READCHAR 250
 #define CR_TM_OPEN 800
 #define CR_TM_WAITCARD "00060000" // 8 символов
@@ -66,8 +65,10 @@ class Cardreader : public QObject
 		bool read(ByteArray &buffer);
 		void skip(int bytes = 1);
 		inline void flush() { m_tty->flush(); m_rcvbuf.clear(); }
-		void sendCmd(const ByteArray &cmd, const ByteArray &data, Command *replied = NULL);
-		void sendCmd(const ByteArray &data, Command *replied = NULL);
+		void sendCmd(const ByteArray &cmd, const ByteArray &data, Command *prev = NULL);
+		void sendCmd(const ByteArray &data, Command *prev = NULL);
+		void queueCmd(Command *cmd, Command *prev);
+		void repeatCmd(int timeout = CMD_TM_ERROR);
 		void handleData();
 		void nextMode(enum ReadMode mode, int bytes = 0);
 		void handleMsg(const ByteArray &block);

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import time
+from common.Singleton import Singleton
 
-class Logger:
+class Logger (Singleton):
 	
 	levels		=	{
 		'silent'	: 0,
@@ -13,20 +14,32 @@ class Logger:
 		'critical'	: 50
 	}
 	
-	__instance = None
 	__log_file = None
-	__configs  = {'datefmt': None, 'format': None, 'filename': None, 'level': levels['silent']}
+	__configs  = {'datefmt': '%H:%M:%S', 'format': '[{ts}] {msg}', 'level': levels['silent']}
 	
-	@staticmethod
-	def get_instance():
-		if not Logger.__instance:
-			Logger.__instance = Logger()
-		return Logger.__instance
+	def __init__ (self, fd = None, fn = None):
+		
+		if not self._first:
+			return
+		
+		if fd != None:
+			self.__log_file = fd
+		elif fn != None:
+			self.__log_file = open(fn, 'aw+')
 	
-	def configure(self, **args):
+	def __del__ (self):
+		
+		if self.__log_file != None:
+			self.__log_file.close()
+	
+	def configure (self, **args):
 		for key, value in args.items():
-			self.__configs[key] = value
-		self.__log_file = open(self.__configs['filename'], 'aw+')
+			if key == 'fd':
+				self.__log_file = value
+			elif key == 'fn':
+				self.__log_file = open(value, 'aw+')
+			else:
+				self.__configs[key] = value
 	
 	def critical(self, message):
 		self.__write('critical', message)
@@ -45,17 +58,15 @@ class Logger:
 	
 	def __write(self, level, message):
 		
+		if self.__log_file == None:
+			return
+		
 		levelname	= level
 		level		= self.levels[level]
 		
 		if self.__configs['level'] and level >= self.__configs['level']:
-			data = {}
-			data['asctime']		= time.strftime(self.__configs['datefmt'])
-			data['message']		= message
-			data['levelname']	= levelname
+			ts = time.strftime(self.__configs['datefmt']) 
 			
-			message = self.__configs['format'] % data
+			message = self.__configs['format'].format(ts = ts, msg = message, level = levelname)
 			
-			log = open(self.__configs['filename'], 'aw+')
-			log.write(message + "\n")
-			log.close()
+			self.__log_file.write(message + "\n")

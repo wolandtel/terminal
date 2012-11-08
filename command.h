@@ -37,18 +37,26 @@
 // Смещения
 #define CMD_OFFSET_CODE 4
 
+// Таймауты (мс)
+#define CMD_TM_WRITE 10
+#define CMD_TM_ERROR 1000
+
 class Command : public QObject
 {
 		Q_OBJECT
 	public:
-		Command(QObject *, const ByteArray &, const ByteArray &);
-		inline unsigned char code() { return m_code; }
-		inline unsigned char param() { return m_param; }
-		void send(int timeout = 0);
+		Command(QObject *parent, const ByteArray &cmd, const ByteArray &data);
+		Command(const Command &cmd);
+		inline unsigned char code() const { return m_code; }
+		inline unsigned char param() const { return m_param; }
+		void send(int timeout = -1);
 		void setNext(Command *next);
-		inline Command *next() { return m_next; }
-		bool atype(int atype);
-		inline int waitBytes () { return m_waitbytes; }
+		void setTimeout(int timeout);
+		inline Command *next() const { return m_next; }
+		bool atype(int atype) const;
+		inline int waitBytes () const { return m_waitbytes; }
+		inline const ByteArray &cmd() const { return i_cmd; }
+		inline const ByteArray &data() const { return i_data; }
 		
 	signals:
 		void send(ByteArray);
@@ -65,6 +73,11 @@ class Command : public QObject
 		Command *m_next;
 		int m_waitbytes;
 		int m_atype;
+		int m_timeout;
+		ByteArray i_cmd;
+		ByteArray i_data;
+		
+		void init();
 };
 
 #endif // COMMAND_H

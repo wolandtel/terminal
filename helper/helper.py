@@ -5,6 +5,7 @@ import sys
 import signal
 
 from services.acceptor.AcceptorController import AcceptorController
+from services.dispenser.DispenserController import DispenserController
 
 def sigHandler (signum, frame):
 	
@@ -29,12 +30,16 @@ signal.signal(signal.SIGABRT, sigHandler)
 signal.signal(signal.SIGILL, sigHandler)
 
 if sys.argv[1] == 'acceptor':	
-	if argn < 4:
+	if argn < 5:
 		sys.exit(3)
 	
 	acceptor = AcceptorController(device = sys.argv[2], baudrate = int(sys.argv[3]), timeout = int(sys.argv[4]))
-	acceptor.start()
+	sys.exit(acceptor.start())
 
 elif sys.argv[1] == 'dispenser':
-	pass
+	if argn < 6:
+		sys.exit(3)
+	
+	dispenser = DispenserController(model = sys.argv[2], device = sys.argv[3])
+	sys.exit(dispenser.dispense(cassettes = sys.argv[4], amount = int(sys.argv[5])))
 
