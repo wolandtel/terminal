@@ -11,6 +11,7 @@
 #include "ejectdialog.h"
 #include "postdata.h"
 #include "jconfig.h"
+#include "printer.h"
 
 #define TERM_DEF_CA QApplication::applicationDirPath() + "/CA.pem"
 
@@ -29,6 +30,9 @@ class Terminal : public QObject
 		
 		Terminal(const JConfig &conf, QObject *parent = 0);
 		~Terminal();
+		inline QString &id() { return m_id; }
+		inline Cardreader *cardreader() { return m_cardreader; }
+		inline double balance() { return m_balance; }
 		
 	signals:
 		void sessionStartFailed(enum NetworkError error);
@@ -52,6 +56,7 @@ class Terminal : public QObject
 		QNetworkReply::NetworkError m_error;
 		QString m_session;
 		double m_balance;
+		Printer *m_printer;
 		
 		void request();
 		void operation(int opcode, QString value, int subcode = 0, int errcode = 0);
@@ -62,7 +67,7 @@ class Terminal : public QObject
 		void readReply();
 		void networkError(QNetworkReply::NetworkError error);
 		void sslErrors(QList<QSslError> errors);
-		void balance(int amount);
+		void changeBalance(int amount);
 };
 
 #endif // TERMINAL_H

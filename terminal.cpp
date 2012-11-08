@@ -11,10 +11,10 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	
 	m_cardreader = new Cardreader(conf["cardreader"]["device"].toString());
 	m_pinDialog	= new PinDialog(conf, m_mainWindow);
-	QString currency = conf["global"]["currency"].toString();
-	m_balanceDialog = new BalanceDialog(currency, m_mainWindow);
+	m_balanceDialog = new BalanceDialog(conf["global"]["currency"].toString(DEF_CURRENCY), m_mainWindow);
 	m_paymentDialog = new PaymentDialog(conf, m_mainWindow);
 	m_ejectDialog = new EjectDialog(conf, m_mainWindow);
+	m_printer = new Printer(conf, this);
 	
 	m_id = conf["terminal"]["id"].toString();
 	m_secret = conf["terminal"]["secret"].toString();
@@ -24,10 +24,10 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	m_request->setAttribute(QNetworkRequest::CacheSaveControlAttribute, false);
 	
 	QList<QSslCertificate> CAs;
-	QFile *CAfile = new QFile(conf["network"]["CA"].toString(TERM_DEF_CA));
-	if (CAfile->exists() && CAfile->open(QIODevice::ReadOnly))
+	QFile CAfile(conf["network"]["CA"].toString(TERM_DEF_CA));
+	if (CAfile.exists() && CAfile.open(QIODevice::ReadOnly))
 	{
-		QSslCertificate CA(CAfile);
+		QSslCertificate CA(&CAfile);
 		if (CA.isValid())
 		{
 			CAs.append(CA);
@@ -38,8 +38,7 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 #endif
 			m_request->setSslConfiguration(ssl);
 		}
-		CAfile->close();
-		delete CAfile;
+		CAfile.close();
 	}
 	
 	m_postData = new PostData(m_id, m_secret);
@@ -63,9 +62,11 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	connect(m_balanceDialog, SIGNAL(payment()), m_paymentDialog, SLOT(open()));
 	connect(m_balanceDialog, SIGNAL(eject(int)), m_ejectDialog, SLOT(open(int)));
 	
-	connect(m_paymentDialog, SIGNAL(credit(int)), SLOT(balance(int)));
+	connect(m_paymentDialog, SIGNAL(credit(int)), SLOT(changeBalance(int)));
+	connect(m_paymentDialog, SIGNAL(credit(int)), m_printer, SLOT(payment(int)));
 
-	connect(m_ejectDialog, SIGNAL(eject(int)), SLOT(balance(int)));
+	connect(m_ejectDialog, SIGNAL(eject(int)), SLOT(changeBalance(int)));
+	connect(m_ejectDialog, SIGNAL(eject(int)), m_printer, SLOT(ejected(int)));
 	
 #ifdef DEBUG
 	connect(m_mainWindow, SIGNAL(debugDialog()), m_ejectDialog, SLOT(open()));
@@ -80,6 +81,9 @@ Terminal::~Terminal()
 {
 	delete m_postData;
 	delete m_request;
+	delete m_printer;
+	delete m_ejectDialog;
+	delete m_paymentDialog;
 	delete m_balanceDialog;
 	delete m_pinDialog;
 	delete m_cardreader;
@@ -195,7 +199,7 @@ void Terminal::sslErrors(QList<QSslError> errors)
 #endif
 }
 
-void Terminal::balance(int amount)
+void Terminal::changeBalance(int amount)
 {
 	if (amount == 0)
 		return;
