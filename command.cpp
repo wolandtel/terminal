@@ -24,7 +24,6 @@ void Command::send(int timeout)
 	if (timeout >= 0)
 		m_timeout = timeout;
 	
-/*DEBUG*/ dbg << m_timeout;
 	if (m_timeout > 0)
 		startTimer(m_timeout);
 	else
