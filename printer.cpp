@@ -2,6 +2,7 @@
 #include <math.h>
 #include "printer.h"
 #include "terminal.h"
+#include "debug.h"
 
 Printer::Printer(const JConfig &conf, Terminal *terminal)
 {
@@ -42,17 +43,22 @@ void Printer::payment(int amount)
 void Printer::print(QString receipt, int amount)
 {
 	QString cardnumber = m_terminal->cardreader()->cardnum();
+	QDateTime current = QDateTime::currentDateTime();
 	
-	receipt.replace("__DATE__", "")
-			.replace("__TIME__", "")
+	receipt.replace("__DATE__", current.toString("dd.MM.yyyy"))
+			.replace("__TIME__", current.toString("hh:mm:ss"))
 			.replace("__TERMINAL_ID__", m_terminal->id())
 			.replace("__CARDNUMBER__", cardnumber.replace(4, cardnumber.size() - 8, " [...] "))
 			.replace("__AMOUNT__", QString::number(amount))
 			.replace("__BALANCE__", QString::number((int)floor(m_terminal->balance())));
 	
+#ifdef DEBUG
+	dbg << "\n" << receipt;
+#endif
 	QTextCodec::setCodecForCStrings(m_codec);
 	m_device->write(receipt.toAscii());
-	m_device->write("\f");
+	m_device->write("\f\n");
+	m_device->flush();
 }
 
 void Printer::loadTpl(const QString &file, QString &tpl)

@@ -10,7 +10,7 @@
 #define DBG_ ""
 */
 
-#define dbgBase QDateTime::currentDateTime().toString("[yyyy-MM-dd hh-mm-ss.zzz] ") + QString(__FILE__) + " (" + QString::number(__LINE__) + ")"
+#define dbgBase QDateTime::currentDateTime().toString("[yyyy-MM-dd hh:mm:ss.zzz] ") + QString(__FILE__) + " (" + QString::number(__LINE__) + ")"
 #define dbg qDebug() << dbgBase
 #define debug(str) dbg + ": " + str;
 
