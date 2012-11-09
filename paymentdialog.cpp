@@ -10,7 +10,7 @@ PaymentDialog::PaymentDialog(const JConfig &conf, QWidget *parent) :
 	ui->setupUi(this);
 	
 	m_currency = conf["global"]["currency"].toString(DEF_CURRENCY);
-	m_helperFile = conf["global"]["helper"].toString(DEF_HELPER);
+	m_helperFile = conf["global"]["helper"].toPath(DEF_HELPER);
 	m_helperParams << "acceptor"
 					<< conf["acceptor"]["device"].toString()
 					<< conf["acceptor"]["baudrate"].toString(PD_ACCEPTOR_DEF_BAUDRATE)

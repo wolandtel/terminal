@@ -12,10 +12,10 @@ Cardreader::Cardreader(const QString &tty, QObject *parent) :
 	m_cardnum = "";
 	
 	PortSettings settings;
-	settings.BaudRate = BAUD38400;
-	settings.Parity = PAR_EVEN;
-	settings.StopBits = STOP_1;
-	settings.DataBits = DATA_8;
+	settings.BaudRate = BAUD38400; // 38400
+	settings.Parity = PAR_EVEN; // 2
+	settings.StopBits = STOP_1; // 0
+	settings.DataBits = DATA_8; // 8
 	
 	nextMode(ReadResponse);
 	

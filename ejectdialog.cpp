@@ -12,7 +12,7 @@ EjectDialog::EjectDialog(const JConfig &conf, QWidget *parent) :
 	m_min = conf["dispenser"]["min"].toInt(EJECT_DEF_MIN);
 	m_max = conf["dispenser"]["max"].toInt(EJECT_DEF_MAX);
 	m_len = conf["dispenser"]["len"].toInt(EJECT_DEF_LEN);
-	m_helperFile = conf["global"]["helper"].toString(DEF_HELPER);
+	m_helperFile = conf["global"]["helper"].toPath(DEF_HELPER);
 	m_helperParams << "dispenser"
 					<< conf["dispenser"]["model"].toString()
 					<< conf["dispenser"]["device"].toString();
@@ -101,6 +101,8 @@ void EjectDialog::on_ejectPb_clicked()
 	params << m_helperCassettes.encode()
 			<< m_amount;
 	m_helper->start(m_helperFile, params);
+	if (!m_helper->waitForStarted())
+		dbg << "! Ошибка выдачи наличных."; // FIX: заменить на запись в лог
 	m_helper->waitForFinished();
 	hide();
 }

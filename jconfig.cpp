@@ -42,7 +42,7 @@ bool JConfig::load(QIODevice *device)
 	return (error() == ErrorNone) && !isNull();
 }
 
-void JConfig::save(const QString &filename)
+void JConfig::save(const QString &filename) const
 {
 	QFile file(filename);
 	if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
@@ -50,7 +50,28 @@ void JConfig::save(const QString &filename)
 	file.close();
 }
 
-void JConfig::save(QIODevice *device)
+void JConfig::save(QIODevice *device) const
 {
 	device->write(dump().toUtf8());
 }
+
+QString JConfig::toPath(const Json &def) const
+{
+	QString path = toString(def);
+	
+	if (path.isNull() || path[0] == '/')
+		return path;
+	
+	return JCONF_BASEDIR + "/" + path;
+}
+
+const JConfig &JConfig::operator[](const JsonIndex &idx) const
+{
+	return ((const JConfig &)Json::operator[](idx));
+}
+
+JConfig &JConfig::operator[](const JsonIndex &idx)
+{
+	return ((JConfig &)Json::operator[](idx));
+}
+
