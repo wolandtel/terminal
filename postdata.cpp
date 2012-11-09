@@ -26,7 +26,7 @@ PostData::PostData(const QString &id, const QString &secret)
 
 PostData::PostData(const JsonObject &object) : Json(object) {}
 
-void PostData::setClient(const QString &card, const QString &pin)
+void PostData::setClient(const QString &card, const Json &pin)
 {
 	PostData &self = *this;
 	
@@ -35,7 +35,7 @@ void PostData::setClient(const QString &card, const QString &pin)
 	self["client"]["pin"] = pin;
 }
 
-void PostData::setAction(const QString &type, const QString &modifier)
+void PostData::setAction(const QString &type, const Json &modifier)
 {
 	PostData &self = *this;
 	

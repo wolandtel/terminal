@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "debug.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -43,4 +44,9 @@ void MainWindow::ejectCard(bool err)
 	text += QString::fromUtf8("Достаньте карту");
 	
 	ui->stateLb->setText(text);
+}
+
+void MainWindow::ejectCardError()
+{
+	ejectCard(true);
 }

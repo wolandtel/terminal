@@ -35,6 +35,7 @@ class Terminal : public QObject
 		inline double balance() { return m_balance; }
 		
 	signals:
+		void clientCheckFailed(enum NetworkError error);
 		void sessionStartFailed(enum NetworkError error);
 		void sessionStopFailed(enum NetworkError error);
 		void sessionStarted(double);
@@ -60,8 +61,10 @@ class Terminal : public QObject
 		
 		void request();
 		void operation(int opcode, QString value, int subcode = 0, int errcode = 0);
+		void actionFailed(const QString &action, const QString &modifier, NetworkError error = OtherError);
 		
 	private slots:
+		void checkClient();
 		void sessionStart();
 		void sessionStop();
 		void readReply();

@@ -9,8 +9,8 @@ class PostData : public Json
 		explicit PostData();
 		PostData(const QString &id, const QString &secret);
 		PostData(const JsonObject &object);
-		void setClient(const QString &card, const QString &pin);
-		void setAction(const QString &type, const QString &modifier = "");
+		void setClient(const QString &card, const Json &pin = Json());
+		void setAction(const QString &type, const Json &modifier = Json());
 		void setParam(const QString &type, const Json &value);
 		QByteArray content();
 	

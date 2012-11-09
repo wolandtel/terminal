@@ -298,7 +298,7 @@ void Cardreader::handleResponse(bool positive)
 			else
 			{
 				// 20 = card has not been read yet or other errors
-				emit ejectCard(true);
+				ejectCard(true);
 			}
 			break;
 		case CMD_SHUTTER:
@@ -424,3 +424,9 @@ void Cardreader::ejectCard(bool err)
 	sendCmd(CMD_SHUTTER, "0");
 	sendCmd(CMD_CARD, ByteArray("2").append(ByteArray(CR_TM_EJECTCARD)));
 }
+
+void Cardreader::ejectCardError()
+{
+	ejectCard(true);
+}
+

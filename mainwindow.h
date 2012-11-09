@@ -24,7 +24,8 @@ class MainWindow : public QMainWindow
 		void displayReady();
 		void displayError();
 		void displayWait();
-		void ejectCard(bool err);
+		void ejectCard(bool err = false);
+		void ejectCardError();
 	
 	private:
     Ui::MainWindow *ui;

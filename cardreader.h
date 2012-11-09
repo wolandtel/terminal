@@ -85,6 +85,7 @@ class Cardreader : public QObject
 		void read();
 		void writeCmd(ByteArray cmd);
 		void ejectCard(bool err = false);
+		void ejectCardError();
 };
 
 #endif // CARDREADER_H

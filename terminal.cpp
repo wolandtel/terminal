@@ -47,11 +47,13 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 	connect(m_cardreader, SIGNAL(initFailed()), m_mainWindow, SLOT(displayError()));
 	connect(m_cardreader, SIGNAL(cardEject(bool)), m_mainWindow, SLOT(ejectCard(bool)));
 	connect(m_cardreader, SIGNAL(cardEjected()), m_mainWindow, SLOT(displayReady()));
-	connect(m_cardreader, SIGNAL(cardInserted()), m_pinDialog, SLOT(open()));
+	connect(m_cardreader, SIGNAL(cardInserted()), SLOT(checkClient()));
 	
 	connect(m_pinDialog, SIGNAL(rejected()), m_cardreader, SLOT(ejectCard()));
 	connect(m_pinDialog, SIGNAL(gotPin()), SLOT(sessionStart()));
 	
+	connect(this, SIGNAL(clientCheckFailed(NetworkError)), m_mainWindow, SLOT(ejectCardError()));
+	connect(this, SIGNAL(clientCheckFailed(NetworkError)), m_cardreader, SLOT(ejectCardError()));
 	connect(this, SIGNAL(sessionStarted(double)), m_pinDialog, SLOT(accept()));
 	connect(this, SIGNAL(sessionStarted(double)), m_balanceDialog, SLOT(open(double)));
 	connect(this, SIGNAL(sessionStopped()), m_cardreader, SLOT(ejectCard()));
@@ -100,6 +102,13 @@ void Terminal::request()
 	connect(reply, SIGNAL(sslErrors(QList<QSslError>)), SLOT(sslErrors(QList<QSslError>)));
 }
 
+void Terminal::checkClient()
+{
+	m_postData->setClient(m_cardreader->cardnum());
+	m_postData->setAction("check", "client");
+	request();
+}
+
 void Terminal::operation(int opcode, QString value, int subcode, int errcode)
 {
 	m_postData->setAction("operation");
@@ -110,6 +119,22 @@ void Terminal::operation(int opcode, QString value, int subcode, int errcode)
 	m_postData->setParam("errcode_id", errcode);
 	m_postData->setParam("value", value);
 	request();
+}
+
+void Terminal::actionFailed(const QString &action, const QString &modifier, NetworkError error)
+{
+	if (action == "session")
+	{
+		if (modifier == "start")
+			emit sessionStartFailed(error);
+		else if (modifier == "stop")
+			emit sessionStopFailed(error);
+	}
+	else if (action == "check")
+	{
+		if (modifier == "client")
+			emit clientCheckFailed(error);
+	}
 }
 
 void Terminal::sessionStart()
@@ -141,13 +166,7 @@ void Terminal::readReply()
 	
 	if (m_error != QNetworkReply::NoError)
 	{
-		if (action == "session")
-		{
-			if (modifier == "start")
-				emit sessionStartFailed(ConnectionFailed);
-			else if (modifier == "stop")
-				emit sessionStopFailed(ConnectionFailed);
-		}
+		actionFailed(action, modifier, ConnectionFailed);
 		return;
 	}
 	
@@ -159,11 +178,7 @@ void Terminal::readReply()
 	int code = response["code"].toInt();
 	if (code != 0)
 	{
-		if (action == "session")
-		{
-			if (modifier == "start")
-				emit sessionStartFailed(OtherError);
-		}
+		actionFailed(action, modifier);
 		return;
 	}
 	
@@ -177,6 +192,11 @@ void Terminal::readReply()
 		}
 		else if (modifier == "stop")
 			emit sessionStopped();
+	}
+	else if (action == "check")
+	{
+		if (modifier == "client")
+			m_pinDialog->open();
 	}
 }
 
