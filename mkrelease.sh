@@ -11,5 +11,5 @@ target=$1
 [ -d "$target" ] || mkdir "$target"
 rm -rf "$target"/*
 cd "$(dirname $0)"
-cp -a terminal terminal.conf templates helper "$target"
+cp -a terminal terminal.sh terminal.conf templates helper "$target"
 
