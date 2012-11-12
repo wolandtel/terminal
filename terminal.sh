@@ -3,4 +3,5 @@
 display=:0
 xauth=/var/lib/gdm/$display.Xauth
 
-DISPLAY=$display XAUTHORITY=$xauth "$(dirname $0)"/terminal
+cd "$(dirname $0)"
+DISPLAY=$display XAUTHORITY=$xauth ./terminal 2>> terminal.log
