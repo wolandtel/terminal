@@ -20,7 +20,7 @@ BalanceDialog::~BalanceDialog()
 void BalanceDialog::setBalance(double balance)
 {
 	m_balance = balance;
-	ui->balanceLb->setText(QString::number(balance) + " " + m_currency);
+	ui->balanceLb->setText(QString::number(balance, 'f', 2) + " " + m_currency);
 	if (balance <= 0)
 		ui->ejectPb->setEnabled(false);
 	else

@@ -144,7 +144,7 @@ void Cardreader::repeatCmd(int timeout)
 {
 	Command *cmd = new Command(*m_curCmd);
 	cmd->setTimeout(timeout);
-	queueCmd(cmd, m_curCmd);
+	queueCmd(cmd, (m_curCmd->next()->code() == CMD_BYTE_STX ? m_curCmd : m_curCmd->next())); // Если следующая команда является ответом, вставляем повтор после неё
 }
 
 void Cardreader::writeCmd(ByteArray cmd)
@@ -155,13 +155,14 @@ void Cardreader::writeCmd(ByteArray cmd)
 	
 #ifdef DEBUG
 	dbg << " i>> cmd = " << ByteArray(1, m_curCmd->code()).toHex()
-					 << "; param = " << ByteArray(1, m_curCmd->param()).toHex();
+					 << (m_curCmd->code() == CMD_BYTE_STX ? "; param = " : "")								//\_
+					 << (m_curCmd->code() == CMD_BYTE_STX ? ByteArray(1, m_curCmd->param()).toHex() : "");	//-- Не выводить параметр, если он не задан
 	dbg << ">> " << cmd.toHex();
 #endif
 	
 	m_tty->write(cmd);
 	
-	handleCurCmd(CMD_ATYPE_NONE); // Сразу же отправляем следующую команду, если текущая не требует ответа (ACK, NACK)
+	handleCurCmd(Command::AnswerNone); // Сразу же отправляем следующую команду, если текущая не требует ответа (ACK, NACK)
 }
 
 void Cardreader::handleData()
@@ -200,11 +201,11 @@ void Cardreader::handleMsg(const ByteArray &block)
 			enum ReadMode mode = ReadResponse;
 			switch ((unsigned char)block[0])
 			{
-				case CMD_RESP_STX:
+				case CMD_BYTE_STX:
 					m_rheader = block;
 					mode = ReadLength;
 					break;
-				case CMD_RESP_ACK:
+				case CMD_BYTE_ACK:
 					switch (m_curCmd->code())
 					{
 						case CMD_CARD:
@@ -214,13 +215,13 @@ void Cardreader::handleMsg(const ByteArray &block)
 								emit initSucceeded();
 							}
 					}
-					handleCurCmd(CMD_ATYPE_ACK); // Отправляем текущую команду, если предыдущая не требует ответа, кроме ACK
+					handleCurCmd(Command::AnswerACK); // Отправляем текущую команду, если предыдущая не требует ответа, кроме ACK
 					break;
-				case CMD_RESP_DLE:
+				case CMD_BYTE_DLE:
 					if (m_curCmd)
 						m_curCmd->send(); // FIX: привести к общему виду
 					break;
-				case CMD_RESP_NAK:
+				case CMD_BYTE_NAK:
 					handleError(ErrorNak);
 					break;
 				default:
@@ -240,12 +241,12 @@ void Cardreader::handleMsg(const ByteArray &block)
 		case ReadCrc:
 			if (((ByteArray)(m_rheader + m_rdata)).crcCcittBa() != block)
 			{
-				sendCmd(CMD_RESP_NAK, m_curCmd);
+				sendCmd(CMD_BYTE_NAK, m_curCmd);
 				handleError(ErrorCrc);
 			}
 			else
 			{
-				sendCmd(CMD_RESP_ACK, m_curCmd);
+				sendCmd(CMD_BYTE_ACK, m_curCmd);
 				handleResponse(m_rdata[0] == 'P');
 			}
 			nextMode(ReadResponse);
@@ -308,9 +309,9 @@ void Cardreader::handleResponse(bool positive)
 	}
 	
 	if (positive)
-		handleCurCmd(CMD_ATYPE_FULL); // Отправляем текущую команду, если предыдущая требовала возврата данных
+		handleCurCmd(Command::AnswerFull); // Отправляем текущую команду, если предыдущая требовала возврата данных
 	else
-		handleCurCmd(CMD_ATYPE_ALL); // Отправляем текущую команду в любом случае
+		handleCurCmd(Command::AnswerAll); // Отправляем текущую команду в любом случае
 }
 
 void Cardreader::handleError(enum Error error)
@@ -327,9 +328,9 @@ void Cardreader::handleError(enum Error error)
 	}
 }
 
-void Cardreader::handleCurCmd(int atype)
+void Cardreader::handleCurCmd(int answerType)
 {
-	if (!(m_curCmd && m_curCmd->atype(atype)))
+	if (!(m_curCmd && m_curCmd->answerType(answerType)))
 		return;
 	
 	Command *next = m_curCmd->next();
@@ -355,7 +356,7 @@ void Cardreader::stopTimer(int *timer, bool condition)
 
 void Cardreader::reset()
 {
-	ByteArray rst = ByteArray(CMD_RESP_DLE).append(CMD_RESP_EOT);
+	ByteArray rst = ByteArray(CMD_BYTE_DLE).append(CMD_BYTE_EOT);
 	flush(); // Сбрасываем буфер устройства, очищаем буфер объекта | FIX: очистить очередь команд
 	
 #ifdef DEBUG

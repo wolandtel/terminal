@@ -41,9 +41,9 @@ void Command::setTimeout(int timeout)
 		m_timeout = timeout;
 }
 
-bool Command::atype(int atype) const
+bool Command::answerType(int answerType) const
 {
-	return atype & this->m_atype;
+	return answerType & this->m_answerType;
 }
 
 void Command::timerEvent(QTimerEvent *event)
@@ -60,17 +60,17 @@ void Command::init()
 	
 	switch (m_code)
 	{
-		case CMD_RESP_DLE:
-			m_atype = CMD_ATYPE_DLE;
+		case CMD_BYTE_DLE:
+			m_answerType = AnswerDLE;
 			m_waitbytes = 2;
 			break;
-		case CMD_RESP_ACK:
-		case CMD_RESP_NAK:
-			m_atype = CMD_ATYPE_NONE;
+		case CMD_BYTE_ACK:
+		case CMD_BYTE_NAK:
+			m_answerType = AnswerNone;
 			m_waitbytes = 0;
 			break;
-		default: // CMD_CARD устанавливалось в ATYPE_ACK для исключения ожидания полного ответа в рамках таймаута чтения символа
-			m_atype = CMD_ATYPE_FULL;
+		default: // CMD_CARD устанавливалось в AnswerACK для исключения ожидания полного ответа в рамках таймаута чтения символа
+			m_answerType = AnswerFull;
 			m_waitbytes = 1;
 	}
 	
@@ -85,7 +85,7 @@ void Command::init()
 	
 	m_param = (unsigned char)i_data[0];
 	
-	m_cmd += CMD_RESP_STX;
+	m_cmd += CMD_BYTE_STX;
 	m_cmd += ByteArray::fromShortSwapped(i_data.size() + 2);
 	m_cmd += 'C';
 	m_cmd += i_cmd;

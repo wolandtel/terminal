@@ -74,7 +74,7 @@ class Cardreader : public QObject
 		void handleMsg(const ByteArray &block);
 		void handleResponse(bool positive = true);
 		void handleError(enum Error error);
-		void handleCurCmd(int atype);
+		void handleCurCmd(int answerType);
 		void stopTimer(int *timer, bool condition = true);
 		void reset();
 		void handleCard(unsigned char param, int errcode);
