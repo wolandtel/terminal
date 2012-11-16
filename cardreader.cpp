@@ -294,9 +294,9 @@ void Cardreader::handleResponse(bool positive)
 		case CMD_MAGTRACK:
 			if (positive)
 			{
-				emit cardInserted();
 				sendCmd(CMD_LED, "20");
 				m_cardnum = m_rdata.mid(5, CR_CARDNUM_LENGTH);
+				emit cardInserted();
 			}
 			else
 			{
@@ -394,8 +394,8 @@ void Cardreader::handleCard(unsigned char param, int errcode)
 			switch (errcode)
 			{
 				case 0:
-					emit cardEjected();
 					ready();
+					emit cardEjected();
 					break;
 				case 7: // карта вставлена не до конца
 				case 9: // таймаут
@@ -417,8 +417,6 @@ void Cardreader::ready()
 
 void Cardreader::ejectCard(bool err)
 {
-	emit cardEject(err);
-	
 	if (err)
 		sendCmd(CMD_LED, "14");
 	else
@@ -426,6 +424,8 @@ void Cardreader::ejectCard(bool err)
 	
 	sendCmd(CMD_SHUTTER, "0");
 	sendCmd(CMD_CARD, ByteArray("2").append(ByteArray(CR_TM_EJECTCARD)));
+	
+	emit cardEject(err);
 }
 
 void Cardreader::ejectCardError()
