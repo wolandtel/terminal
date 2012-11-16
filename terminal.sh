@@ -79,7 +79,7 @@ esac
 if [ -r "$pidfile" ]; then
 	confirm "Остановить терминал" n || exit 0
 	echo -n "Терминал останавливается... "
-	kill -INT `cat "$pidfile"` && rm -f "$pidfile" && echo "[OK]" || echo "[FAIL]"
+	kill $(cat "$pidfile") && rm -f "$pidfile" && echo "[OK]" || echo "[FAIL]"
 	exit $?
 fi
 

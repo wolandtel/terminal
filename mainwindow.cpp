@@ -6,13 +6,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-		ui->setupUi(this);
+	ui->setupUi(this);
 #ifdef DEBUG
-		connect(ui->debugPb, SIGNAL(clicked()), SIGNAL(debugDialog()));
-		setCursor(Qt::ArrowCursor);
+	connect(ui->debugPb, SIGNAL(clicked()), SIGNAL(debugDialog()));
+	setCursor(Qt::ArrowCursor);
 #else
-		ui->debugPb->hide();
 #endif
+	ui->debugPb->hide();
 }
 
 MainWindow::~MainWindow()

@@ -154,9 +154,11 @@ void Cardreader::writeCmd(ByteArray cmd)
 		return;
 	
 #ifdef DEBUG
-	dbg << " i>> cmd = " << ByteArray(1, m_curCmd->code()).toHex()
-					 << (m_curCmd->code() == CMD_BYTE_STX ? "; param = " : "")								//\_
-					 << (m_curCmd->code() == CMD_BYTE_STX ? ByteArray(1, m_curCmd->param()).toHex() : "");	//-- Не выводить параметр, если он не задан
+	if (m_curCmd->code() == CMD_BYTE_STX) // Выводить параметр, только если он задан
+		dbg << " i>> cmd = " << ByteArray(1, m_curCmd->code()).toHex() << "; param = " << ByteArray(1, m_curCmd->param()).toHex();
+	else
+		dbg << " i>> cmd = " << ByteArray(1, m_curCmd->code()).toHex();
+	
 	dbg << ">> " << cmd.toHex();
 #endif
 	

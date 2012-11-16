@@ -81,6 +81,9 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 
 Terminal::~Terminal()
 {
+#ifdef DEBUG
+	dbg << ". Winter is coming…";
+#endif
 	delete m_postData;
 	delete m_request;
 	delete m_printer;
