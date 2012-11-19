@@ -28,7 +28,8 @@ SOURCES += main.cpp\
     jconfig.cpp \
     paymentdialog.cpp \
     ejectdialog.cpp \
-	printer.cpp
+	printer.cpp \
+	ipc.cpp
 
 HEADERS  += mainwindow.h \
     pindialog.h \
@@ -45,7 +46,8 @@ HEADERS  += mainwindow.h \
     paymentdialog.h \
     ejectdialog.h \
 	printer.h \
-	config.h
+	config.h \
+	ipc.h
 
 FORMS    += mainwindow.ui \
     pindialog.ui \
