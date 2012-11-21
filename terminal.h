@@ -12,6 +12,7 @@
 #include "postdata.h"
 #include "jconfig.h"
 #include "printer.h"
+#include "ipc.h"
 
 #define TERM_DEF_CA QApplication::applicationDirPath() + "/CA.pem"
 
@@ -28,7 +29,7 @@ class Terminal : public QObject
 			OtherError
 		};
 		
-		Terminal(const JConfig &conf, QObject *parent = 0);
+		Terminal(const JConfig &conf, Ipc &ipc, QObject *parent = 0);
 		~Terminal();
 		inline QString &id() { return m_id; }
 		inline Cardreader *cardreader() { return m_cardreader; }
@@ -42,6 +43,7 @@ class Terminal : public QObject
 		void sessionStopped();
 		
 	public slots:
+		void shutdown();
 		
 	private:
 		MainWindow *m_mainWindow;
@@ -58,6 +60,7 @@ class Terminal : public QObject
 		QString m_session;
 		double m_balance;
 		Printer *m_printer;
+		Ipc &m_ipc;
 		
 		void request();
 		void operation(int opcode, QString value, int subcode = 0, int errcode = 0);

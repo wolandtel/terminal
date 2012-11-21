@@ -1,4 +1,5 @@
 #include "ipc.h"
+#include "debug.h"
 
 Ipc::Ipc(const JConfig &conf, Ipc::Mode mode) :
 	m_shared(conf["ipc"]["key"].toString(IPC_DEF_KEY)),
@@ -6,8 +7,12 @@ Ipc::Ipc(const JConfig &conf, Ipc::Mode mode) :
 	m_timerId(0),
 	m_timeout(conf["ipc"]["timeout"].toInt(IPC_DEF_TIMEOUT)),
 	m_mode(mode),
-	m_state(StateNone)
-{ // FIX: выставить коды ошибок
+	m_state(StateNone),
+	m_error(ErrorNone)
+{
+#ifdef DEBUG
+	dbg << " i: IPC key = " << m_shared.key() << "; mode = " << mode;
+#endif
 	switch (mode)
 	{
 		case ModeApplication:
@@ -16,30 +21,35 @@ Ipc::Ipc(const JConfig &conf, Ipc::Mode mode) :
 				if (!send(ResultOk) || !(m_timerId = startTimer(m_timer)))
 				{
 					m_shared.detach();
+					m_error = ErrorOther;
 				}
 			}
 			else
 			{
-				if (m_shared.error() == QSharedMemory::AlreadyExists);
-				else {}
+				if (m_shared.error() == QSharedMemory::AlreadyExists)
+					m_error = ErrorAlreadyExists;
+				else
+					m_error = ErrorShmem;
 			}
 			break;
 		case ModeManager:
 			if (!m_shared.attach())
 			{
-				if (m_shared.error() == QSharedMemory::NotFound);
-				else {}
+				if (m_shared.error() == QSharedMemory::NotFound)
+					m_error = ErrorNotFound;
+				else
+					m_error = ErrorShmem;
 			}
 			break;
 	}
+#ifdef DEBUF
+	dbg << " i: IPC error = " << m_error;
+#endif
 }
 
 Ipc::~Ipc()
 {
-	stopTimer();
-	
-	if (m_shared.isAttached())
-		m_shared.detach();
+	disable();
 }
 
 bool Ipc::connect(enum Cmd code, const QObject *reciever, const char *member)
@@ -96,6 +106,14 @@ bool Ipc::reply(enum Result code, const QByteArray &data)
 	return send(code, data) && (m_timerId = startTimer(m_timer));
 }
 
+void Ipc::disable()
+{
+	stopTimer();
+	
+	if (m_shared.isAttached())
+		m_shared.detach();
+}
+
 void Ipc::timerEvent(QTimerEvent *event)
 {
 	QByteArray data;
@@ -107,6 +125,7 @@ void Ipc::timerEvent(QTimerEvent *event)
 	{
 		stopTimer();
 		emit result(ResultTimedOut);
+		qApp->quit(); // ???
 		return;
 	}
 	
@@ -125,6 +144,9 @@ void Ipc::timerEvent(QTimerEvent *event)
 			cmd = (enum Cmd)msg->code;
 			if (msg->sender == ModeManager)
 			{
+#ifdef DEBUG
+				dbg << " i: IPC got command = " << cmd << " [" << data.toHex() << "]";
+#endif
 				if (m_connected.contains(cmd))
 				{
 					stopTimer();
@@ -136,9 +158,15 @@ void Ipc::timerEvent(QTimerEvent *event)
 						case CmdStatus:
 							if (m_state != StateNone)
 								send(ResultOk, QByteArray(1, m_state), true);
+							else
+								send(ResultNotImplemented, true);
+							break;
+						case CmdStop:
+							send(ResultOk, true);
+							qApp->quit();
 							break;
 						case CmdPid:
-							send(ResultOk, QByteArray::number(QCoreApplication::applicationPid()), true);
+							send(ResultOk, QByteArray::number(QApplication::applicationPid()), true);
 							break;
 						default:
 							send(ResultNotImplemented, true);
@@ -148,8 +176,12 @@ void Ipc::timerEvent(QTimerEvent *event)
 		case ModeManager:
 			if (msg->sender == ModeApplication)
 			{
+#ifdef DEBUG
+				dbg << " i: IPC got response = " << msg->code << " [" << data.toHex() << "]";
+#endif
 				stopTimer();
 				emit result((enum Result)msg->code, data);
+				qApp->quit(); // ???
 			}
 			break;
 	}
@@ -167,20 +199,23 @@ void Ipc::stopTimer()
 
 bool Ipc::send(unsigned code, const QByteArray &data, bool gLocked)
 {
-	bool locked = gLocked;
 	Message *msg;
 	unsigned short maxSize;
 	
-	if (!locked)
-		if((locked = m_shared.lock()))
+	if (!gLocked)
+		if(!m_shared.lock())
 			return false;
 	
-	msg = (Message*)m_shared.data();
+#ifdef DEBUG
+	dbg << " i: IPC sent code = " << code << " [" << data.toHex() << "]";
+#endif
+	
+	msg = (Message *)m_shared.data();
 	msg->sender = (unsigned char)m_mode;
 	msg->code = code;
 	msg->dataSize = (unsigned short)data.size();
 	
-	maxSize = msg->dataSize = IPC_SIZE - sizeof(struct Message);
+	maxSize = IPC_SIZE - sizeof(struct Message);
 	if (msg->dataSize > maxSize)
 		msg->dataSize = maxSize;
 	memcpy(msg + 1, data.data(), msg->dataSize);

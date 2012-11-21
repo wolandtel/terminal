@@ -2,8 +2,9 @@
 #include "json.h"
 #include "debug.h"
 
-Terminal::Terminal(const JConfig &conf, QObject *parent) :
-	QObject(parent)
+Terminal::Terminal(const JConfig &conf, Ipc &ipc, QObject *parent) :
+	QObject(parent),
+	m_ipc(ipc)
 {
 	m_mainWindow = new MainWindow();
 	m_mainWindow->setWindowState(Qt::WindowFullScreen);
@@ -81,6 +82,10 @@ Terminal::Terminal(const JConfig &conf, QObject *parent) :
 
 Terminal::~Terminal()
 {
+}
+
+void Terminal::shutdown()
+{
 #ifdef DEBUG
 	dbg << ". Winter is coming…";
 #endif
@@ -93,6 +98,7 @@ Terminal::~Terminal()
 	delete m_pinDialog;
 	delete m_cardreader;
 	delete m_mainWindow;
+	m_ipc.disable();
 }
 
 void Terminal::request()

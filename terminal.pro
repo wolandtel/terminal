@@ -4,7 +4,13 @@
 #
 #-------------------------------------------------
 
+DEFINES += DEBUG
+
 QT       += core gui network script
+
+unix:INCLUDEPATH += /usr/include/qcommandline
+
+LIBS += -lqcommandline
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -12,7 +18,6 @@ include(3rdparty/qextserialport-1.2beta2/src/qextserialport.pri)
 
 TARGET = terminal
 TEMPLATE = app
-
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -29,7 +34,8 @@ SOURCES += main.cpp\
     paymentdialog.cpp \
     ejectdialog.cpp \
 	printer.cpp \
-	ipc.cpp
+	ipc.cpp \
+	options.cpp
 
 HEADERS  += mainwindow.h \
     pindialog.h \
@@ -47,7 +53,8 @@ HEADERS  += mainwindow.h \
     ejectdialog.h \
 	printer.h \
 	config.h \
-	ipc.h
+	ipc.h \
+	options.h
 
 FORMS    += mainwindow.ui \
     pindialog.ui \

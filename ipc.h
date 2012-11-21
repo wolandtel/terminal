@@ -56,6 +56,15 @@ class Ipc : public QObject
 			StateStopping
 		};
 		
+		enum Error
+		{
+			ErrorNone,
+			ErrorAlreadyExists,
+			ErrorNotFound,
+			ErrorShmem,
+			ErrorOther
+		};
+		
 		struct Message
 		{
 			unsigned char sender;
@@ -69,6 +78,11 @@ class Ipc : public QObject
 		bool connect(enum Cmd code, const QObject *reciever, const char *member);
 		bool cmd(enum Cmd code);
 		bool reply(enum Result code, const QByteArray &data = QByteArray());
+		inline enum Mode mode() { return m_mode; }
+		inline enum Error error() { return m_error; }
+	
+	public slots:
+		void disable();
 	
 	signals:
 		void status();
@@ -88,6 +102,7 @@ class Ipc : public QObject
 		QTime m_cmdSent;
 		QList<enum Cmd> m_connected;
 		enum State m_state;
+		enum Error m_error;
 		
 		void stopTimer();
 		bool send(unsigned int code, const QByteArray &data, bool gLocked = false);
