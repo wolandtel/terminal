@@ -7,6 +7,7 @@
 #define EJECT_DEF_MIN 100
 #define EJECT_DEF_MAX 15000
 #define EJECT_DEF_LEN 5
+#define EJECT_DEF_CASSETTES QApplication::applicationDirPath() + "/cassettes.conf"
 
 namespace Ui {
 	class EjectDialog;
@@ -29,7 +30,7 @@ class EjectDialog : public QDialog
 		QString m_amount;
 		QString m_helperFile;
 		QStringList m_helperParams;
-		Json m_helperCassettes;
+		JConfig m_helperCassettes;
 		QProcess *m_helper;
 		
 		void amountChanged();

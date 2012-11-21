@@ -18,17 +18,21 @@ class JConfig : public Json
 		JConfig();
 		JConfig(const QString &source, enum SourceType type = SourceFile);
 		JConfig(QIODevice *device);
+		JConfig(const Json &json);
 		
-		bool load(const QString &filename);
+		bool load(const QString &filename = QString());
 		bool load(QIODevice *device);
 		
-		void save(const QString &filename) const;
-		void save(QIODevice *device) const;
+		bool save(const QString &filename = QString());
+		bool save(QIODevice *device) const;
 		
 		QString toPath(const Json &def = Json()) const;
 		
 		const JConfig &operator[](const JsonIndex &idx) const;
 		JConfig &operator[](const JsonIndex &idx);
+	
+	private:
+		QString m_filename;
 };
 
 #endif // JCONFIG_H

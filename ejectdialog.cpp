@@ -5,7 +5,8 @@
 
 EjectDialog::EjectDialog(const JConfig &conf, QWidget *parent) :
 	QDialog(parent),
-	ui(new Ui::EjectDialog)
+	ui(new Ui::EjectDialog),
+	m_helperCassettes(conf["dispenser"]["cassettes"].toString(EJECT_DEF_CASSETTES))
 {
 	ui->setupUi(this);
 	ui->currencyLb->setText(conf["global"]["currency"].toString(DEF_CURRENCY));
@@ -16,7 +17,6 @@ EjectDialog::EjectDialog(const JConfig &conf, QWidget *parent) :
 	m_helperParams << "dispenser"
 					<< conf["dispenser"]["model"].toString()
 					<< conf["dispenser"]["device"].toString();
-	m_helperCassettes = conf["dispenser"]["cassettes"];
 	m_helper = new QProcess();
 ///*DEBUG*/	m_helper->setProcessChannelMode(QProcess::ForwardedChannels);
 	
@@ -37,6 +37,7 @@ EjectDialog::~EjectDialog()
 {
 	delete m_helper;
 	delete ui;
+	m_helperCassettes.save();
 }
 
 void EjectDialog::amountChanged()
@@ -128,6 +129,7 @@ void EjectDialog::helperRead()
 		if ((code = data["code"].toInt()) == 0)
 		{
 			m_helperCassettes = data["cassettes"];
+			m_helperCassettes.save();
 			emit eject(-1 * data["dispensed"].toInt());
 		}
 	}

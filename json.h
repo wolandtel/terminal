@@ -95,6 +95,8 @@ class Json
 		static QString unescape(const QString &str);
 	
 	protected:
+		enum Type m_type;
+		
 		void setValue(const JsonObject &val);
 		void setValue(const JsonArray &val);
 		void setValue(const QString &val);
@@ -113,7 +115,6 @@ class Json
 		QString encodeArray(enum EncodeMode mode) const;
 	
 	private:
-		enum Type m_type;
 		void *m_data;
 		mutable enum Error m_error;
 		

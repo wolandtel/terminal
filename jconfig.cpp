@@ -21,10 +21,22 @@ JConfig::JConfig(QIODevice *device)
 	load(device);
 }
 
+JConfig::JConfig(const Json &json)
+{
+	m_type = Null;
+	setValue(json);
+}
+
 bool JConfig::load(const QString &filename)
 {
+	if (!filename.isNull())
+		m_filename = filename;
+	
+	if (m_filename.isNull())
+		return false;
+	
 	bool result = false;
-	QFile file(filename);
+	QFile file(m_filename);
 	
 	if (file.exists() && file.open(QIODevice::ReadOnly))
 	{
@@ -42,17 +54,30 @@ bool JConfig::load(QIODevice *device)
 	return (error() == ErrorNone) && !isNull();
 }
 
-void JConfig::save(const QString &filename) const
+bool JConfig::save(const QString &filename)
 {
-	QFile file(filename);
+	if (!filename.isNull())
+		m_filename = filename;
+	
+	if (m_filename.isNull())
+		return false;
+	
+	bool result = false;
+	QFile file(m_filename);
+	
 	if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-		save(&file);
-	file.close();
+	{
+		result = save(&file);
+		file.close();
+	}
+	
+	return result;
 }
 
-void JConfig::save(QIODevice *device) const
+bool JConfig::save(QIODevice *device) const
 {
-	device->write(dump().toUtf8());
+	const QByteArray &data = dump().toUtf8();
+	return device->write(data) == data.size();
 }
 
 QString JConfig::toPath(const Json &def) const
