@@ -1,3 +1,4 @@
+#include <iostream>
 #include "ipc.h"
 #include "debug.h"
 
@@ -8,7 +9,8 @@ Ipc::Ipc(const JConfig &conf, Ipc::Mode mode) :
 	m_timeout(conf["ipc"]["timeout"].toInt(IPC_DEF_TIMEOUT)),
 	m_mode(mode),
 	m_state(StateNone),
-	m_error(ErrorNone)
+	m_error(ErrorNone),
+	m_sentCmd(CmdNone)
 {
 #ifdef DEBUG
 	dbg << " i: IPC key = " << m_shared.key() << "; mode = " << mode;
@@ -76,10 +78,37 @@ bool Ipc::connect(enum Cmd code, const QObject *reciever, const char *member)
 		case CmdStateSave:
 			connected = QObject::connect(this, SIGNAL(stateSave()), reciever, member);
 			break;
+		default:;
 	}
 	
-	if (connected && !m_connected.contains(code))
-		m_connected << code;
+	if (connected && !m_cmdConnected.contains(code))
+		m_cmdConnected << code;
+	
+	return connected;
+}
+
+bool Ipc::connect(enum Result code, const QObject *reciever, const char *member)
+{
+	bool connected = false;
+	
+	switch (code)
+	{
+		case ResultOk:
+			connected = QObject::connect(this, SIGNAL(ok(QByteArray)), reciever, member);
+			break;
+		case ResultNotImplemented:
+			connected = QObject::connect(this, SIGNAL(notImplemented()), reciever, member);
+			break;
+		case ResultFail:
+			connected = QObject::connect(this, SIGNAL(fail(QByteArray)), reciever, member);
+			break;
+		case ResultTimedOut:
+			connected = QObject::connect(this, SIGNAL(timedOut()), reciever, member);
+			break;
+	}
+	
+	if (connected && !m_resultConnected.contains(code))
+		m_resultConnected << code;
 	
 	return connected;
 }
@@ -91,6 +120,7 @@ bool Ipc::cmd(enum Cmd code)
 	
 	if (send(code))
 	{
+		m_sentCmd = code;
 		m_cmdSent = QTime::currentTime();
 		return (m_timerId = startTimer(m_timer));
 	}
@@ -119,13 +149,21 @@ void Ipc::timerEvent(QTimerEvent *event)
 	QByteArray data;
 	Message *msg;
 	enum Cmd cmd;
+	enum Result result;
 	(void) event;
 	
 	if ((m_mode == ModeManager) && (m_cmdSent.msecsTo(QTime::currentTime()) > m_timeout)) // Проверка таймаута
 	{
 		stopTimer();
-		emit result(ResultTimedOut);
-		qApp->quit(); // ???
+		
+		if (m_resultConnected.contains(ResultTimedOut))
+			emit timedOut(m_sentCmd);
+		else
+		{
+			std::cout << "Command execution timed out" << std::endl;
+			qApp->quit();
+		}
+		
 		return;
 	}
 	
@@ -147,7 +185,7 @@ void Ipc::timerEvent(QTimerEvent *event)
 #ifdef DEBUG
 				dbg << " i: IPC got command = " << cmd << " [" << data.toHex() << "]";
 #endif
-				if (m_connected.contains(cmd))
+				if (m_cmdConnected.contains(cmd))
 				{
 					stopTimer();
 					notify(cmd);
@@ -174,14 +212,42 @@ void Ipc::timerEvent(QTimerEvent *event)
 			}
 			break;
 		case ModeManager:
+			result = (enum Result)msg->code;
 			if (msg->sender == ModeApplication)
 			{
 #ifdef DEBUG
-				dbg << " i: IPC got response = " << msg->code << " [" << data.toHex() << "]";
+				dbg << " i: IPC got response = " << result << " [" << data.toHex() << "]";
 #endif
 				stopTimer();
-				emit result((enum Result)msg->code, data);
-				qApp->quit(); // ???
+				if (m_resultConnected.contains(result))
+					notify(result, data);
+				else
+				{
+					switch (result)
+					{
+						case ResultOk:
+							switch (m_sentCmd)
+							{
+								case CmdPid:
+									std::cout << data.data() << std::endl;
+									break;
+								case CmdStop:
+									break;
+								default:
+									std::cout << "Command execution succeeded. Response dump: " << data.toHex().data() << std::endl;
+									break;
+							}
+							break;
+						case ResultNotImplemented:
+							std::cout << "Command not implemented" << std::endl;
+							break;
+						case ResultFail:
+							std::cout << "Error while executing command: " << data.data() << std::endl;
+							break;
+						default:;
+					}
+					qApp->quit();
+				}
 			}
 			break;
 	}
@@ -253,5 +319,23 @@ void Ipc::notify(enum Cmd code)
 		case CmdStateSave:
 			emit stateSave();
 			break;
+		default:;
+	}
+}
+
+void Ipc::notify(enum Result code, QByteArray data)
+{
+	switch (code)
+	{
+		case ResultOk:
+			emit ok(m_sentCmd, data);
+			break;
+		case ResultNotImplemented:
+			emit notImplemented(m_sentCmd);
+			break;
+		case ResultFail:
+			emit fail(m_sentCmd, data);
+			break;
+		default:;
 	}
 }

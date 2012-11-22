@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <iostream>
 #include "debug.h"
 #include "config.h"
 #include "jconfig.h"
@@ -13,30 +14,31 @@ int main(int argc, char *argv[])
 	
 	JConfig conf(options.config());
 	if (conf.error() != JConfig::ErrorNone)
+	{
+		// TODO: print error [log]
 		return 1;
+	}
 	
 	Ipc ipc(conf, (options.command().isNull() ? Ipc::ModeApplication : Ipc::ModeManager)); // Инициализация межпроцессного взаимодействия
 	if (ipc.error() == Ipc::ErrorNone)
 		switch (ipc.mode())
 		{
 			case Ipc::ModeManager:
-				// TODO: обработка ответов Ipc
-				
 				if (options.command() == "pid")
-					dbg << ipc.cmd(Ipc::CmdPid);
+					ipc.cmd(Ipc::CmdPid);
 				else if (options.command() == "status")
-					dbg << ipc.cmd(Ipc::CmdStatus);
+					ipc.cmd(Ipc::CmdStatus);
 				else if (options.command() == "stop")
-					dbg << ipc.cmd(Ipc::CmdStop);
+					ipc.cmd(Ipc::CmdStop);
 				else if (options.command() == "configRead")
-					dbg << ipc.cmd(Ipc::CmdConfigRead);
+					ipc.cmd(Ipc::CmdConfigRead);
 				else if (options.command() == "logReopen")
 					ipc.cmd(Ipc::CmdLogReopen);
 				else if (options.command() == "stateSave")
 					ipc.cmd(Ipc::CmdStateSave);
 				else
 				{
-					// TODO: print error
+					std::cerr << "Unknown command" << std::endl;
 					options.showHelp(true, 2);
 					ipc.disable();
 					return 2;
@@ -65,12 +67,16 @@ int main(int argc, char *argv[])
 		switch (ipc.error())
 		{
 			case Ipc::ErrorAlreadyExists:
+				std::cerr << "Aplication is already running" << std::endl;
 				return 3;
 			case Ipc::ErrorNotFound:
+				std::cerr << "Aplication is not running" << std::endl;
 				return 4;
 			case Ipc::ErrorShmem:
+				std::cerr << "Shared memory error" << std::endl;
 				return 5;
 			case Ipc::ErrorOther:
+				std::cerr << "Unknown IPC error" << std::endl;
 				return 6;
 			default:;
 		}

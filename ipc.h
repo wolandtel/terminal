@@ -31,6 +31,7 @@ class Ipc : public QObject
 		
 		enum Cmd
 		{
+			CmdNone,
 			CmdStatus,
 			CmdStop,
 			CmdPid,
@@ -76,8 +77,11 @@ class Ipc : public QObject
 		~Ipc();
 		
 		bool connect(enum Cmd code, const QObject *reciever, const char *member);
+		bool connect(enum Result code, const QObject *reciever, const char *member);
+		
 		bool cmd(enum Cmd code);
 		bool reply(enum Result code, const QByteArray &data = QByteArray());
+		
 		inline enum Mode mode() { return m_mode; }
 		inline enum Error error() { return m_error; }
 	
@@ -85,12 +89,17 @@ class Ipc : public QObject
 		void disable();
 	
 	signals:
+		// cmds
 		void status();
 		void stop();
 		void configRead();
 		void logReopen();
 		void stateSave();
-		void result(enum Result, QByteArray data = QByteArray());
+		// results
+		void ok(enum Cmd, QByteArray data);
+		void notImplemented(enum Cmd);
+		void fail(enum Cmd, QByteArray errmsg);
+		void timedOut(enum Cmd);
 	
 	protected:
 		void timerEvent(QTimerEvent *event);
@@ -100,14 +109,17 @@ class Ipc : public QObject
 		int m_timer, m_timerId, m_timeout;
 		enum Mode m_mode;
 		QTime m_cmdSent;
-		QList<enum Cmd> m_connected;
+		QList<enum Cmd> m_cmdConnected;
+		QList<enum Result> m_resultConnected;
 		enum State m_state;
 		enum Error m_error;
+		enum Cmd m_sentCmd;
 		
 		void stopTimer();
 		bool send(unsigned int code, const QByteArray &data, bool gLocked = false);
 		bool send(unsigned int code, bool gLocked = false);
 		void notify(enum Cmd code);
+		void notify(enum Result code, QByteArray data);
 };
 
 #endif // IPC_H
