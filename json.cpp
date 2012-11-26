@@ -545,22 +545,22 @@ void Json::setValue(const Json &val)
 			setNull();
 			break;
 		case Object:
-			setValue(val.toObject());
+			setValue(*((JsonObject *)val.m_data));
 			break;
 		case Array:
-			setValue(val.toArray());
+			setValue(*((JsonArray *)val.m_data));
 			break;
 		case String:
-			setValue(val.toString());
+			setValue(*((QString *)val.m_data));
 			break;
 		case Number:
-			setValue(val.toNumber());
+			setValue(*((double *)val.m_data));
 			break;
 		case Bool:
-			setValue(val.toBool());
+			setValue(*((bool *)val.m_data));
 			break;
 	}
-	m_error = val.error();
+	m_error = val.m_error;
 }
 
 void Json::setValue(const QVariant &val)

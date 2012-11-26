@@ -11,11 +11,11 @@ class ByteArray : public QByteArray
 {
 	public:
 		ByteArray();
-		ByteArray(QByteArray);
-		ByteArray(const char *);
-		ByteArray(int, char);
-		ByteArray(int);
-		static QByteArray fromShortSwapped(unsigned short);
+		ByteArray(const QByteArray &src);
+		ByteArray(const char *cstr);
+		ByteArray(const int size, const unsigned char chr);
+		ByteArray(const unsigned char chr);
+		static QByteArray fromShortSwapped(const unsigned short);
 		unsigned short crcCcitt() const;
 		QByteArray crcCcittBa() const;
 		unsigned short toShort() const;

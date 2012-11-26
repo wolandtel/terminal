@@ -6,6 +6,7 @@
 #include "terminal.h"
 #include "ipc.h"
 #include "options.h"
+#include "logger.h"
 
 int main(int argc, char *argv[])
 {
@@ -15,9 +16,11 @@ int main(int argc, char *argv[])
 	JConfig conf(options.config());
 	if (conf.error() != JConfig::ErrorNone)
 	{
-		// TODO: print error [log]
+		Log->fatal("main", "Config not found");
 		return 1;
 	}
+	
+	Logger::instance(conf);
 	
 	Ipc ipc(conf, (options.command().isNull() ? Ipc::ModeApplication : Ipc::ModeManager)); // Инициализация межпроцессного взаимодействия
 	if (ipc.error() == Ipc::ErrorNone)

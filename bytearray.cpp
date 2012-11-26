@@ -2,15 +2,15 @@
 
 ByteArray::ByteArray() : QByteArray() {}
 
-ByteArray::ByteArray(QByteArray src) : QByteArray(src) {}
+ByteArray::ByteArray(const QByteArray &src) : QByteArray(src) {}
 
 ByteArray::ByteArray(const char *cstr) : QByteArray(cstr) {}
 
-ByteArray::ByteArray(int size, char chr) : QByteArray(size, chr) {}
+ByteArray::ByteArray(const int size, const unsigned char chr) : QByteArray(size, chr) {}
 
-ByteArray::ByteArray(int chr) : QByteArray(1, (unsigned char)chr) {}
+ByteArray::ByteArray(const unsigned char chr) : QByteArray(1, chr) {}
 
-QByteArray ByteArray::fromShortSwapped(unsigned short num)
+QByteArray ByteArray::fromShortSwapped(const unsigned short num)
 {
 	unsigned short swp = (num << 8 | num >> 8);
 	return QByteArray((const char *)&swp, 2);

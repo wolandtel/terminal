@@ -56,15 +56,10 @@ class Command : public QObject
 		void setTimeout(int timeout);
 		inline Command *next() const { return m_next; }
 		bool answerType(int answerType) const;
-		inline int waitBytes () const { return m_waitbytes; }
-		inline const ByteArray &cmd() const { return i_cmd; }
-		inline const ByteArray &data() const { return i_data; }
 		
 	signals:
 		void send(ByteArray);
 		
-	public slots:
-	
 	protected:
 		void timerEvent(QTimerEvent *event);
 		
@@ -76,10 +71,6 @@ class Command : public QObject
 		int m_waitbytes;
 		int m_answerType;
 		int m_timeout;
-		ByteArray i_cmd;
-		ByteArray i_data;
-		
-		void init();
 };
 
 #endif // COMMAND_H

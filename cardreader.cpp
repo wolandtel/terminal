@@ -95,7 +95,6 @@ void Cardreader::skip(int bytes)
 
 void Cardreader::read()
 {
-///*DEBUG*/	debug("Have data");
 	QByteArray data = m_tty->readAll();
 	if (data.size() == 0)
 		return;

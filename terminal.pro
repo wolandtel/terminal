@@ -35,7 +35,9 @@ SOURCES += main.cpp\
     ejectdialog.cpp \
 	printer.cpp \
 	ipc.cpp \
-	options.cpp
+	options.cpp \
+	logger.cpp \
+	logtarget.cpp
 
 HEADERS  += mainwindow.h \
     pindialog.h \
@@ -54,7 +56,9 @@ HEADERS  += mainwindow.h \
 	printer.h \
 	config.h \
 	ipc.h \
-	options.h
+	options.h \
+	logger.h \
+	logtarget.h
 
 FORMS    += mainwindow.ui \
     pindialog.ui \
