@@ -12,7 +12,7 @@ Options::Options(QObject *parent) :
 	clconf << (QCommandLineConfigEntry){ QCommandLine::Option, 'c', "config", "Path to the config file", QCommandLine::Optional }
 			<< (QCommandLineConfigEntry){ QCommandLine::Param, NULL, "command", "Send command to the running process", QCommandLine::Optional };
 	
-	m_cmdline = new QCommandLine(*QApplication::instance(), clconf);
+	m_cmdline = new QCommandLine(*qApp, clconf);
 	m_cmdline->enableVersion(true);
 	m_cmdline->enableHelp(true);
 	

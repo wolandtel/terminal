@@ -2,6 +2,7 @@
 #include "bytearray.h"
 #include "math.h"
 #include "debug.h"
+#include "logger.h"
 
 Json::Json()
 {
@@ -115,7 +116,12 @@ void Json::parse(const QString &jString)
 	const QScriptValue &sv = se.evaluate("(" + jString + ")");
 	
 	if (se.hasUncaughtException())
+	{
+		Log->error("json", "exception occured on line "
+							+ QString::number(se.uncaughtExceptionLineNumber()) + ": "
+							+ se.uncaughtException().toString());
 		m_error = ErrorParsing;
+	}
 	else
 		setValue(parse(sv)); // error is set by setNull()
 }

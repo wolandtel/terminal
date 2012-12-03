@@ -6,9 +6,13 @@
 
 DEFINES += DEBUG
 
-QT       += core gui network script
+QT += core gui network script
+
+CONFIG += console
 
 unix:INCLUDEPATH += /usr/include/qcommandline
+win32:INCLUDEPATH += "C:/Program Files/qcommandline/include/qcommandline"
+win32:LIBS += -L "c:/Qt/4.8.3/lib" -L "C:/Program Files/qcommandline/lib"
 
 LIBS += -lqcommandline
 
